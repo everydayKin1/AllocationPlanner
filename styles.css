@@ -1,0 +1,3034 @@
+:root {
+  --bg: #f7f1ee;
+  --paper: #fffcf9;
+  --surface: #fff;
+  --icon-surface: #fff;    /* 元素・タグアイコンの白枠（両テーマ共通で明るく保つ） */
+  --muted-surface: #ece5e8;
+  --ink: #2c2233;
+  --muted: #8d7a89;
+  --line: #eeddea;
+  --line-strong: #ddbdd4;
+  --accent: #8c5fc9;
+  --accent-deep: #5f3f8f;
+  --accent-ink: #fff;
+  --warn: #b23c58;
+  --warn-soft: #f7e2ea;
+  --soft: #f9dffc;
+  --soft-2: #cfeaf6;
+  --ok-soft: #e7f4ef;
+  --gold: #c79a3a;
+  --ok: #3f7d5c;
+  --roster-green: #a3e635;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 12px 30px rgba(40, 20, 45, .16);
+  --shadow-soft: 0 5px 16px rgba(40, 20, 45, .10);
+}
+
+/* ---------- ナイトモード ---------- */
+:root[data-theme="dark"] {
+  --bg: #17141f;
+  --paper: #221e2c;
+  --surface: #2b2637;
+  --icon-surface: #f2edf7;  /* アイコン枠は暗すぎず、見やすい明色を保つ */
+  --muted-surface: #2f2a3b;
+  --ink: #ece7f3;
+  --muted: #a99cba;
+  --line: #342e42;
+  --line-strong: #4a4159;
+  --accent: #b48ae8;
+  --accent-deep: #d6bff5;
+  --warn: #f08099;
+  --warn-soft: #43222e;
+  --soft: #392a4a;
+  --soft-2: #23384a;
+  --ok-soft: #1e3b30;
+  --gold: #e0b661;
+  --ok: #6fce9a;
+  --shadow: 0 12px 30px rgba(0, 0, 0, .5);
+  --shadow-soft: 0 5px 16px rgba(0, 0, 0, .38);
+}
+
+/* ページ背景の淡いラジアルはダークでは暗めに差し替え */
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(120% 90% at 100% 0%, #2a1d3a 0%, transparent 55%),
+    radial-gradient(120% 90% at 0% 100%, #1d2340 0%, transparent 55%),
+    var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, #f8e2f5 0%, transparent 55%),
+    radial-gradient(120% 90% at 0% 100%, #e9e0f7 0%, transparent 55%),
+    var(--bg);
+  color: var(--ink);
+  font-family: "Zen Antique", "Noto Sans JP", "Hiragino Mincho ProN", serif;
+  letter-spacing: .02em;
+  line-height: 1.55;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+.file-button {
+  min-height: 36px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: border-color .15s ease, background .15s ease, transform .05s ease;
+}
+
+button:hover,
+.file-button:hover {
+  border-color: var(--accent);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.primary,
+.tile.selected .tile-select {
+  background: var(--soft);
+  color: var(--accent-deep);
+  border-color: var(--accent);
+}
+
+button.danger {
+  color: var(--warn);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 9px 11px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.hidden {
+  display: none !important;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+/* ---------- header ---------- */
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  padding: 11px 16px;
+  border-bottom: 2px solid var(--gold);
+  background: linear-gradient(135deg, #1b1130 0%, #3a2060 45%, #5a2650 100%);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.app-header h1 {
+  color: #f6ecf7;
+}
+
+.app-header h1,
+.plan-status h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.app-header .tip-trigger {
+  vertical-align: middle;
+  color: #e3b262;
+  border: 1px solid rgba(227, 178, 98, .5);
+}
+
+.eyebrow {
+  margin: 0 0 3px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.app-subtitle {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.menu-button {
+  display: none;
+  font-size: 17px;
+  min-width: 40px;
+  padding: 8px 12px;
+}
+
+.header-actions button,
+.header-actions .file-button {
+  min-height: 30px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.header-actions .howto-button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.header-actions .menu-button {
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: 17px;
+}
+
+/* ---------- month switcher ---------- */
+
+.month-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.month-nav {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 0;
+  background: transparent;
+  color: #f6ecf7;
+}
+
+.month-nav:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.month-select {
+  min-width: 172px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #f6ecf7;
+  font-weight: 700;
+  text-align: center;
+  text-align-last: center;
+}
+
+.month-element-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.month-element-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* ---------- settings ---------- */
+
+.settings-title {
+  margin: 0 0 8px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+#rosterSettingsPanel .toggle-row {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1.5px dashed var(--line);
+}
+
+.settings-reset {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1.5px dashed var(--line);
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.reset-scope-btn {
+  width: 100%;
+  font-size: 12px;
+  text-align: center;
+}
+
+.reset-scope-btn.armed {
+  background: var(--warn);
+  color: #fff;
+  border-color: var(--warn);
+}
+
+.settings-hint {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ---------- layout ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 344px) minmax(400px, 1fr);
+  gap: 13px;
+  padding: 13px;
+  align-items: start;
+}
+
+.roster-panel,
+.planner-panel {
+  min-width: 0;
+}
+
+.roster-panel {
+  position: sticky;
+  top: 76px;
+  max-height: calc(100vh - 90px);
+  overflow: auto;
+}
+
+.summary-strip,
+.character-list-panel,
+.roster-settings-panel,
+.phase-overview-panel,
+.plan-status,
+.char-panel,
+.stage-card {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+/* 編成状況ボタンの入れ物。白いカードは出さず、紫のボタンだけを見せる */
+.toolbar {
+  padding: 0;
+  margin-bottom: 10px;
+}
+
+.character-list-panel,
+.roster-settings-panel {
+  padding: 11px;
+}
+
+.roster-count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 46px 10px 12px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--soft);
+  color: var(--accent-deep);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  position: relative;
+  /* 編成状況カードは sticky な roster-panel（overflow:auto）の最上部にあり、
+     上方向へ伸びる影が上端でクリップされて「埋まって」見える。影を下方向だけに
+     寄せて上へのはみ出しを無くす（位置は変えないのでズレは出ない）。 */
+  box-shadow: 0 7px 14px -5px rgba(40, 20, 45, .20);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.roster-count:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 11px 20px -6px rgba(40, 20, 45, .26);
+}
+
+.roster-count:active {
+  transform: translateY(0);
+}
+
+:root[data-theme="dark"] .roster-count {
+  box-shadow: 0 7px 14px -5px rgba(0, 0, 0, .5);
+}
+
+:root[data-theme="dark"] .roster-count:hover {
+  box-shadow: 0 11px 20px -6px rgba(0, 0, 0, .58);
+}
+
+.roster-count::after {
+  content: "詳細 ›";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-deep);
+  opacity: .75;
+}
+
+.roster-count-heading {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.count-main {
+  font-size: 12px;
+}
+
+.count-onfield {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.count-onfield.warn {
+  color: var(--warn);
+}
+
+.count-onfield-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+/* roster-count 内のアイコンは左端を他の行と揃える（tip-triggerの余白を打ち消す） */
+.count-onfield .count-onfield-icon-btn {
+  margin-left: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.roster-count.ready {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.roster-count.over {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.search-row {
+  display: grid;
+  gap: 8px;
+}
+
+.search-row input {
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+.filter-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 10px;
+  padding: 4px 2px 6px;
+  border: 0;
+  border-bottom: 1.5px solid var(--line-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filter-toggle:hover {
+  color: var(--accent-deep);
+  border-bottom-color: var(--accent);
+}
+
+.filter-toggle.open {
+  color: var(--accent-deep);
+  border-bottom-color: var(--accent);
+}
+
+.filter-toggle-icon {
+  font-size: 11px;
+}
+
+.filter-panel {
+  margin-top: 6px;
+}
+
+.traveler-row {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.filter-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.filter-panel-head-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filter-reset-btn {
+  min-height: 26px;
+  padding: 3px 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.filter-reset-btn:hover {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.chip {
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 5px 11px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.chip.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.roster-modal-filter-panel {
+  margin-top: 8px;
+}
+
+.roster-modal-filter-panel .chip-row {
+  margin-top: 6px;
+}
+
+.roster-modal-filter-panel .chip-row:first-child {
+  margin-top: 10px;
+}
+
+.chip.icon-chip {
+  min-height: 26px;
+  min-width: 26px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip.icon-chip .chip-icon {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.chip-icon-fallback {
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.toggle-row input {
+  width: auto;
+}
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--line);
+  flex: none;
+  height: 56px;
+}
+
+.summary-strip div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 6px 14px;
+  background: var(--paper);
+  text-align: center;
+}
+
+/* ラベル行の ⓘ が行の高さを押し上げないように詰める */
+.summary-strip .tip-trigger {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin-left: 3px;
+  vertical-align: middle;
+}
+
+.summary-strip span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.summary-strip strong {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ---------- character tiles ---------- */
+
+.character-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.roster-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.roster-tab {
+  border: 0;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 8px 4px;
+  min-height: 0;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.roster-tab.active {
+  color: var(--accent-deep);
+  border-bottom-color: var(--accent);
+}
+
+.phase-overview-panel {
+  padding: 11px;
+}
+
+.phase-overview-row.special .phase-overview-label {
+  color: var(--accent);
+}
+
+.tile {
+  min-width: 0;
+  position: relative;
+}
+
+.tile-select {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 9px 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line-strong);
+  background:
+    linear-gradient(180deg, var(--elem-soft, var(--surface)), var(--surface) 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+.tile.selected .tile-select {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--soft);
+}
+
+.tile.dimmed .tile-select {
+  opacity: .55;
+}
+
+.tile.dimmed .tile-name,
+.tile.dimmed .tile-vitality {
+  color: var(--muted);
+}
+
+.tile.not-rostered .tile-select {
+  opacity: .78;
+}
+
+.tile.not-rostered .tile-name {
+  color: var(--muted);
+}
+
+.tile.is-rostered .tile-select {
+  border: 4px solid var(--roster-green, #a3e635);
+  box-shadow: 0 0 0 1px rgba(163, 230, 53, .35);
+}
+
+.tile-select-toggle {
+  cursor: pointer;
+}
+
+.tile-select-toggle:hover {
+  filter: brightness(0.97);
+}
+
+.tile-select-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.modal-tile-number {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--roster-green, #a3e635);
+  color: #16220a;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.tile-label {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--elem, #b0a0a8);
+  letter-spacing: .02em;
+}
+
+.tile-label.gray {
+  background: #c9b8c0;
+}
+
+.tile .portrait {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2.5px solid var(--elem, var(--line-strong));
+}
+
+.tile-vitality {
+  font-size: 13px;
+  letter-spacing: 1px;
+  line-height: 1;
+  color: var(--gold);
+}
+
+.tile-vitality .spent {
+  color: var(--line-strong);
+}
+
+.tile-vitality .vital {
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+}
+
+.tile-name {
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+}
+
+.mini-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--icon-surface);
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mini-badge-icon-only {
+  padding: 3px;
+}
+
+.mini-badge-icon-only .badge-icon {
+  margin: 0;
+}
+
+.elem-badge {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--icon-surface);
+  border: 1.5px solid var(--line-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.elem-badge img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  filter: none !important;
+}
+
+.elem-badge-fallback {
+  font-size: 9px;
+  font-weight: 900;
+  color: var(--elem, #7b746c);
+}
+
+.tile-elem-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+/* モーダルタイル: 元素をキャラアイコンの左上に */
+.modal-tile-portrait-wrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.modal-tile-elem-corner {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 21px;
+  height: 21px;
+  z-index: 2;
+}
+
+.modal-tile-elem-corner img {
+  width: 14px;
+  height: 14px;
+}
+
+/* スロット: 元素をキャラアイコンの右上に */
+.slot-portrait-wrap {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex: none;
+}
+
+.slot-elem-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 19px;
+  height: 19px;
+  z-index: 2;
+}
+
+.slot-elem-badge img {
+  width: 13px;
+  height: 13px;
+}
+
+.modal-elem-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 18px;
+  height: 18px;
+}
+
+.modal-elem-badge img {
+  width: 11px;
+  height: 11px;
+}
+
+/* 編成状況モーダルのタイル: 元素 位置 役割 その他 を間を開けて1行に */
+.modal-tile-badges {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 5px;
+  width: 100%;
+}
+
+.modal-tile-badge-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.modal-badge-elem {
+  width: 20px;
+  height: 20px;
+}
+
+.modal-badge-elem img {
+  width: 14px;
+  height: 14px;
+}
+
+.modal-tag-icon {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: var(--icon-surface);
+  border: 1px solid var(--line-strong);
+  overflow: hidden;
+  flex: none;
+}
+
+.modal-tag-icon img {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+}
+
+.modal-tag-icon-text {
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.tile-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 0 2px;
+  font-size: 9.5px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: center;
+}
+
+.tile-check input {
+  width: auto;
+}
+
+.tile.rostered .tile-select {
+  border-color: var(--accent);
+}
+
+.tile.rostered .tile-check {
+  color: var(--accent-deep);
+}
+
+/* ---------- planner ---------- */
+
+.planner-sticky-head {
+  position: sticky;
+  /* 左カラムの編成状況カード（.roster-panel: top 76px）と吸着位置を揃える。
+     ヘッダーとの間の素通しすき間は ::before でブラーを上へ延長して覆う。 */
+  top: 76px;
+  z-index: 20;
+  background: rgba(247, 241, 238, .68);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding-bottom: 8px;
+}
+
+/* ナイトモードでは明るい半透明背景が灰色の帯に見えるため、暗い色に差し替える */
+:root[data-theme="dark"] .planner-sticky-head {
+  background: rgba(23, 20, 31, .72);
+}
+
+/* デスクトップ（2カラム）でのぼかしトレイの体裁。
+   ・左右を2pxずつ広げ、選択中の幕の紫枠のはみ出しを覆う（中身の位置は保つ）
+   ・下の角を丸め、上のカードと同じ丸みに揃える（上端はヘッダー下に隠れる）
+   ・下端は中身に沿わせ、警告が無いニュートラル時の余分なはみ出しを抑える */
+@media (min-width: 861px) {
+  .planner-sticky-head {
+    margin-left: -2px;
+    margin-right: -2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  .planner-sticky-head .arcana-row {
+    margin-bottom: 0;
+  }
+
+  .planner-sticky-head .warnings.show {
+    margin-top: 8px;
+  }
+
+  /* ヘッダー（約67px）と吸着位置（76px）の間の素通しすき間を、ブラーを
+     上方向へ延長して覆う。トレイ本体は動かさないのでスクロール時の位置ずれは
+     出ない。背景色は本体から継承（ライト/ナイト両対応）。 */
+  .planner-sticky-head::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 14px;
+    background: inherit;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    pointer-events: none;
+  }
+}
+
+.plan-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.planner-sticky-head .plan-status {
+  padding: 9px 12px;
+  margin-bottom: 8px;
+}
+
+.planner-sticky-head .plan-status h2 {
+  font-size: 16px;
+}
+
+.planner-sticky-head .plan-status .eyebrow {
+  font-size: 10px;
+}
+
+.planner-sticky-head .status-pill {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+.planner-sticky-head .pill-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.buff-status {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--soft-2);
+  color: #4a6fa5;
+  padding: 6px 9px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.pill-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.inline-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  vertical-align: -3px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+/* Element icon images share several icon classes with other icon types
+   (role/reaction/etc.), so target them by filename instead of class to
+   avoid outlining unrelated icons. Thin dark outline improves legibility
+   against light and colored pill backgrounds alike. */
+img[src*="月兆"],
+img[src*="魔導"] {
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+}
+
+.arcana-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.arcana-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.arcana-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  height: 56px;
+  padding: 7px 11px;
+  background: var(--paper);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.arcana-control-icon {
+  width: 19px;
+  height: 19px;
+  object-fit: contain;
+  flex: none;
+}
+
+.arcana-control-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.arcana-control-label {
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.arcana-control select {
+  min-width: 120px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 2px 0;
+  min-height: 0;
+}
+
+.planner-sticky-head .arcana-control select {
+  min-width: 110px;
+  font-size: 12px;
+  padding: 2px 0;
+  min-height: 0;
+}
+
+.warnings {
+  display: none;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.planner-sticky-head .warnings {
+  padding: 8px 10px;
+  margin-bottom: 0;
+  font-size: 12px;
+}
+
+.warnings.show {
+  display: block;
+}
+
+.warnings ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.planner-sticky-head .warnings ul {
+  padding-left: 15px;
+}
+
+.stage-list {
+  display: grid;
+  gap: 12px;
+}
+
+.stage-card {
+  padding: 11px;
+}
+
+.stage-card.active {
+  outline: 2.5px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.stage-card.special {
+  border-left: 4px solid #2c1830;
+}
+
+.stage-card.special .stage-title {
+  color: var(--accent);
+}
+
+.stage-header {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.stage-title {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  min-height: 0;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.stage-phase-label {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stage-title-arcana-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: -5px;
+  margin-left: 6px;
+}
+
+.stage-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stage-meta span {
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-weight: 700;
+}
+
+.stage-meta span.type-special {
+  background: #2c1830;
+  color: #f3e6f7;
+}
+
+.stage-meta span.type-boss {
+  background: var(--warn);
+  color: #fff;
+}
+
+.stage-meta span.type-objective {
+  background: var(--soft-2);
+  color: #2f6a8f;
+}
+
+.enemy-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px 12px;
+  margin-bottom: 10px;
+  border-bottom: 1.5px solid var(--line);
+}
+
+.enemy-box {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 9px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.enemy-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--accent-deep);
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.enemy-icon.has-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.enemy-text {
+  min-width: 0;
+}
+
+.enemy-text strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.enemy-text span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.enemy-choice-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.enemy-choice-arrow {
+  color: var(--accent-deep);
+  font-size: 10px;
+}
+
+/* Overlay <select> spans from just after the enemy icon to the row's
+   right edge, so the whole name/note text + "選択 ▾" area is clickable,
+   not just the small arrow glyph. */
+.enemy-choice-overlay {
+  position: absolute;
+  top: 0;
+  left: 45px;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.stage-controls {
+  display: grid;
+  grid-template-columns: 88px repeat(3, 120px) 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: end;
+}
+
+.stepper-control {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.stepper-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.stepper-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.stepper-btn {
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.stepper-btn:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.stepper-value {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.flower-readout {
+  justify-self: end;
+  text-align: right;
+}
+
+.flower-cost {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--accent-deep);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.flower-detail {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.composition-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.comp-pill {
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--elem, #7b746c);
+  background: var(--surface);
+  border: 1.5px solid var(--elem-soft, var(--line-strong));
+}
+
+.comp-pill.neutral {
+  background: var(--surface);
+  color: var(--muted);
+  border: 1.5px solid var(--line-strong);
+}
+
+.comp-divider {
+  color: var(--line-strong);
+  font-weight: 700;
+}
+
+/* 招待の目安（案A：表示のみ・自動では上げない） */
+.invite-guide {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1.5px dashed var(--line-strong);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.invite-guide.short {
+  background: var(--warn-soft);
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.invite-guide-label {
+  color: inherit;
+}
+
+.invite-guide-portrait {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  font-size: 9px;
+}
+
+.invite-guide-summary {
+  margin-left: 4px;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.slot {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  padding: 8px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.slot.armed {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--soft);
+  box-shadow: 0 0 0 2px var(--soft);
+}
+
+.slot.filled {
+  border-style: solid;
+  color: var(--ink);
+  background: var(--elem-soft, #fff);
+  border-color: var(--elem, var(--line-strong));
+}
+
+.slot.invalid {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.slot .portrait {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+}
+
+.slot-name {
+  min-width: 0;
+}
+
+.slot-name strong,
+.slot-name span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.slot-name span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.slot-name span.remaining-zero {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.clear-slot {
+  width: 26px;
+  min-height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+}
+
+.stage-note {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: .55;
+}
+
+.phase-overview-list {
+  display: grid;
+  gap: 6px;
+}
+
+.phase-overview-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 7px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: left;
+}
+
+.phase-overview-row.active {
+  border-color: var(--accent);
+  background: var(--soft);
+}
+
+.phase-overview-enemy {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--accent-deep);
+  font-weight: 700;
+  font-size: 11px;
+  overflow: hidden;
+}
+
+.phase-overview-enemy-highlight {
+  border: 3px solid #5f3f8f;
+}
+
+.phase-overview-enemy.has-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.phase-overview-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  min-width: 0;
+}
+
+.phase-overview-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.phase-overview-label {
+  flex: none;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 11px;
+  min-width: 62px;
+}
+
+.phase-overview-compat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+}
+
+.phase-compat-chip {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--icon-surface);
+  border: 1.5px solid var(--gold);
+  overflow: hidden;
+}
+
+.phase-compat-chip img {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  filter: none;
+}
+
+.phase-overview-slots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.phase-overview-arcana-icon {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  object-fit: contain;
+}
+
+.phase-overview-portrait {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  font-size: 8px;
+}
+
+.phase-overview-portrait.empty {
+  background: var(--bg);
+  border-style: dashed;
+}
+
+.phase-overview-sep {
+  color: var(--line-strong);
+  font-weight: 700;
+  font-size: 9px;
+}
+
+.empty-editor {
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.character-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.character-editor label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.character-editor label.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.character-editor label.toggle-row.hidden {
+  display: none;
+}
+
+.portrait-editor {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.portrait-info {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.portrait-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.element-icon-badge {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+}
+
+.element-icon-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.name-display {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-status {
+  justify-self: start;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--soft);
+  color: var(--accent-deep);
+}
+
+.editor-status.off {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.portrait.large {
+  width: 80px;
+  height: 80px;
+  font-size: 28px;
+  border-radius: 50%;
+}
+
+fieldset {
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+
+legend {
+  color: var(--muted);
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.read-only-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tag-badge.muted {
+  color: var(--muted);
+  background: var(--bg);
+  text-decoration: line-through;
+}
+
+.tag-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  vertical-align: -4px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.chip-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  vertical-align: -4px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.badge-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 2px;
+  vertical-align: -2px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.comp-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 3px;
+  vertical-align: -3px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+input[readonly] {
+  color: var(--muted);
+  background: var(--bg);
+}
+
+/* ---------- portrait base ---------- */
+
+.portrait {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f4dfe8, #fbeff4);
+  border: 1.5px solid var(--line-strong);
+  overflow: hidden;
+  color: #fff;
+  font-weight: 700;
+}
+
+.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translate(-50%, 12px);
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- drawer / overlay ---------- */
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(74, 58, 65, .35);
+  z-index: 44;
+}
+
+.overlay.show {
+  display: block;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1180px) {
+  .layout {
+    grid-template-columns: minmax(260px, 344px) 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  /* ハンバーガー（☰）はモバイルでは非表示。下部タブバーに集約する。 */
+  .menu-button {
+    display: none;
+  }
+
+  .app-header {
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    gap: 4px 10px;
+  }
+
+  .app-header h1 {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .title-icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: -3px;
+    margin-right: 4px;
+  }
+
+  .month-switcher {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .month-nav {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px 8px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .roster-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(340px, 86vw);
+    max-height: none;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    background: var(--bg);
+    box-shadow: var(--shadow);
+    z-index: 45;
+    padding: 12px;
+    transform: translateX(-104%);
+    transition: transform .22s ease;
+  }
+
+  .roster-panel.open {
+    transform: translateX(0);
+  }
+
+  .stage-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .flower-readout {
+    justify-self: stretch;
+    text-align: left;
+  }
+
+  /* スマホでは4枠を横一列のアイコン表示に。名前は隠し残り活力のみ表示。 */
+  .slot-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .slot {
+    position: relative;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-content: center;
+    min-height: 0;
+    padding: 10px 4px 8px;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .slot .slot-name {
+    text-align: center;
+  }
+
+  .slot .slot-name strong {
+    display: none; /* 名前は非表示 */
+  }
+
+  .slot .slot-name span {
+    font-size: 10px;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  /* 空き枠・選択中スロットは補足テキストも隠してアイコン（＋/👆）だけに */
+  .slot:not(.filled) .slot-name span {
+    display: none;
+  }
+
+  .slot .artifact-badge {
+    display: none; /* 聖遺物セット名はアイコン表示では省略 */
+  }
+
+  .slot .clear-slot {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+  }
+
+  .slot .match-star {
+    left: 3px;
+    right: auto; /* ✕ と重ならないよう左上へ */
+  }
+
+  .character-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---- v6 additions: tips, recommendations, match star, artifact badges, title icon ---- */
+
+.title-icon {
+  width: 22px;
+  height: 22px;
+  vertical-align: -4px;
+  margin-right: 5px;
+}
+
+.tip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 4px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--accent-deep);
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 4px;
+  cursor: help;
+}
+
+.tip-bubble {
+  position: fixed;
+  z-index: 95; /* モーダル(80)やキャラ選択ポップアップ(78)より前面に */
+  max-width: 240px;
+  padding: 10px 12px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.6;
+  box-shadow: var(--shadow);
+}
+
+/* 空き枠タップ時のキャラ選択ポップアップ */
+.slot-picker {
+  position: fixed;
+  z-index: 78;
+  width: min(560px, 94vw);
+  max-height: 340px;
+  overflow: auto;
+  padding: 12px;
+  background: var(--paper);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+
+.slot-picker-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-deep);
+  margin-bottom: 10px;
+}
+
+.slot-picker-empty {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 6px 2px;
+}
+
+.slot-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 10px 8px;
+  justify-items: center;
+}
+
+.slot-picker-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.slot-picker-item.exhausted {
+  opacity: .35;
+  cursor: default;
+  filter: grayscale(0.6);
+}
+
+.slot-picker-portrait-wrap {
+  position: relative;
+  display: block;
+}
+
+.slot-picker-portrait {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--elem, var(--line-strong));
+}
+
+.slot-picker-elem {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 19px;
+  height: 19px;
+  z-index: 2;
+}
+
+.slot-picker-elem img {
+  width: 13px;
+  height: 13px;
+}
+
+.slot-picker-star {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 13px;
+  color: var(--gold);
+  z-index: 2;
+}
+
+.slot-picker-vitality {
+  font-size: 11px;
+  letter-spacing: 1px;
+  line-height: 1;
+  color: var(--gold);
+}
+
+.slot-picker-vitality .spent {
+  color: var(--line-strong);
+}
+
+.slot-picker-vitality .vital {
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+}
+
+.comp-pill.tagged {
+  background: var(--gold);
+  color: #fff;
+}
+
+.comp-pill.warn-pill {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border: 1.5px solid #f0c8bd;
+  display: inline-flex;
+  align-items: center;
+}
+
+.recommend-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1.5px dashed var(--line);
+}
+
+.recommend-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin-right: 2px;
+}
+
+.recommend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px 4px 4px;
+  border-radius: 999px;
+  background: var(--elem-soft, #fff);
+  border: 1.5px solid var(--elem, var(--line-strong));
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.recommend-reason {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.recommend-portrait {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+
+.match-star {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 12px;
+  color: var(--gold);
+}
+
+.slot.filled {
+  position: relative;
+}
+
+.artifact-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-footer {
+  padding: 18px 20px 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  opacity: .8;
+}
+
+/* ---------- roster modal ---------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 15, 35, .5);
+  display: grid;
+  place-items: center;
+  z-index: 80;
+  padding: 20px;
+}
+
+/* ---------- character panel ---------- */
+
+.char-panel-overlay {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.char-panel {
+  width: min(380px, 92vw);
+  height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
+  border-radius: 0;
+  padding: 18px;
+}
+
+.char-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.char-panel-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.modal-close {
+  min-height: 30px;
+  width: 30px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 16px;
+}
+
+.menu-modal {
+  position: relative; /* 閉じるボタンをスクロールしても固定するための基準 */
+  width: min(1400px, 80vw);
+  max-height: 86vh;
+  display: flex;
+  background: var(--paper);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.menu-modal-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: none;
+  width: 160px;
+  padding: 14px 10px;
+  background: var(--bg);
+  border-right: 1.5px solid var(--line);
+}
+
+.menu-modal-tab {
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 10px 12px;
+  min-height: 0;
+  text-align: left;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.menu-modal-tab.active {
+  background: var(--soft);
+  color: var(--accent-deep);
+}
+
+.menu-modal-content {
+  /* position: relative を外し、閉じるボタンの基準を .menu-modal（スクロール
+     しない親）に移す。これでコンテンツをスクロールしても ✕ は消えない。 */
+  flex: 1;
+  min-width: 0;
+  padding: 18px;
+  overflow: auto;
+}
+
+.menu-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 5;
+  /* 丸枠をやめてバツ単体に。ホバーで薄くなる。 */
+  width: auto;
+  min-height: 0;
+  padding: 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  transition: opacity .15s ease;
+}
+
+.menu-modal-close:hover {
+  opacity: .45;
+  background: transparent;
+  border-color: transparent;
+}
+
+.menu-panel.hidden {
+  display: none;
+}
+
+.roster-modal-sticky {
+  position: sticky;
+  top: -18px;
+  background: var(--paper);
+  padding-top: 2px;
+  z-index: 3;
+}
+
+.how-to-modal-body {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.howto-lead {
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.howto-steps {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.howto-steps li {
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--accent-deep);
+}
+
+.howto-note {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.howto-alert {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.howto-section-head {
+  margin: 18px 0 8px;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--accent-deep);
+  border-top: 1.5px dashed var(--line);
+  padding-top: 14px;
+}
+
+.howto-toggle {
+  margin: 14px 0;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 2px 12px;
+}
+
+.howto-toggle summary {
+  padding: 10px 2px;
+  font-weight: 700;
+  color: var(--accent-deep);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.howto-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.howto-toggle summary::after {
+  content: "▸";
+  flex: none;
+  font-size: 11px;
+  color: var(--accent);
+  transition: transform .15s ease;
+}
+
+.howto-toggle[open] summary::after {
+  transform: rotate(90deg);
+}
+
+.howto-toggle-body {
+  padding: 2px 2px 14px;
+}
+
+.howto-toggle-body p {
+  margin: 0 0 8px;
+}
+
+.howto-calc-list {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.howto-calc-total {
+  display: block;
+  font-weight: 900;
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 4px;
+  color: var(--accent-deep);
+  margin: 10px 0;
+}
+
+.howto-conclusion {
+  background: var(--soft);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-top: 12px;
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+
+.roster-modal-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 6px;
+  border-bottom: 1.5px dashed var(--line);
+}
+
+.roster-modal-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 58px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1.5px solid var(--elem, var(--line-strong));
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.roster-modal-summary-pill .comp-icon {
+  margin: 0;
+}
+
+/* オンフィールドのアイコンは tip-trigger で包まれているので、余白を消して元素ピルと配置を揃える */
+.roster-modal-summary-pill .tip-trigger {
+  margin-left: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.roster-modal-status {
+  padding: 7px 12px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.roster-modal-status.ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.roster-modal-status.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.boss-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.boss-coverage-card {
+  padding: 9px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.boss-coverage-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+
+.boss-coverage-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--accent-deep);
+  font-weight: 700;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.boss-coverage-icon.has-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.boss-coverage-title {
+  font-weight: 700;
+  font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boss-coverage-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.boss-coverage-covered-icons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  flex-basis: 100%;
+}
+
+/* 「相性のいい元素：」のアイコンは詰めて並べる */
+.boss-coverage-elem-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.boss-coverage-elem-icon {
+  margin: 0;
+}
+
+.boss-coverage-mini-portrait {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  font-size: 9px;
+}
+
+.boss-coverage-status.covered {
+  color: var(--ok);
+}
+
+.boss-coverage-status.missing {
+  color: var(--warn);
+}
+
+.boss-coverage-check {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.boss-coverage-portrait {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  font-size: 10px;
+}
+
+.boss-coverage-note {
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1.5px dashed var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 860px) {
+  .boss-coverage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .char-panel-overlay {
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .char-panel {
+    width: 100%;
+    height: auto;
+    max-height: 82vh;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .menu-modal {
+    flex-direction: column;
+    width: 100%;
+    max-height: 88vh;
+  }
+
+  .menu-modal-nav {
+    flex-direction: row;
+    width: auto;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1.5px solid var(--line);
+  }
+
+  .menu-modal-tab {
+    flex: none;
+    white-space: nowrap;
+  }
+}
+
+.roster-modal-section {
+  margin-bottom: 18px;
+}
+
+.roster-modal-section h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-deep);
+}
+
+.roster-modal-empty {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+}
+
+.roster-modal-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.modal-tile-meta {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.modal-tile-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.roster-modal-level {
+  width: 46px;
+  padding: 3px 5px;
+  font-size: 11px;
+}
+
+.roster-modal-section-muted .tile-select {
+  background: var(--muted-surface);
+  border-color: #ddd0d5;
+}
+
+.roster-modal-section-muted .tile-name {
+  color: var(--muted);
+}
+
+@media (max-width: 860px) {
+  .roster-modal-tile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------- mobile tab bar ---------- */
+
+.mobile-tab-bar {
+  display: none;
+}
+
+.tab-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.tab-bar-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.tab-bar-item.active {
+  color: var(--accent-deep);
+}
+
+@media (max-width: 860px) {
+  /* 使い方（？）はモバイルでは非表示。下部タブバーの「使い方」に集約する。
+     .header-actions .howto-button の詳細度に負けないよう同じ詳細度で打ち消す。 */
+  .header-actions .howto-button {
+    display: none;
+  }
+
+  .layout {
+    padding-bottom: 80px;
+  }
+
+  .mobile-tab-bar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    background: var(--paper);
+    border-top: 1.5px solid var(--line-strong);
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    box-shadow: 0 -6px 16px rgba(40, 20, 45, .1);
+  }
+}
+
+/* ---------- モバイルの上部を圧縮（幕ごとの配置ヘッダー） ---------- */
+/* スマホでは画面上部にヘッダー＋sticky ブロックが積み重なって窮屈になる
+   ため、sticky を解除してスクロールで送り出せるようにし、各要素の余白と
+   文字サイズを詰める。 */
+@media (max-width: 860px) {
+  .planner-sticky-head {
+    position: static;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding-bottom: 0;
+  }
+
+  .planner-sticky-head .plan-status {
+    padding: 7px 11px;
+    margin-bottom: 8px;
+  }
+
+  .planner-sticky-head .plan-status h2 {
+    font-size: 14px;
+  }
+
+  .planner-sticky-head .plan-status .eyebrow {
+    font-size: 9px;
+    margin-bottom: 1px;
+  }
+
+  .buff-status {
+    gap: 5px;
+  }
+
+  .planner-sticky-head .status-pill {
+    padding: 4px 8px;
+    font-size: 10.5px;
+  }
+
+  .planner-sticky-head .pill-icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+  }
+
+  .arcana-row {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .arcana-control {
+    height: 48px;
+    padding: 5px 10px;
+  }
+
+  .summary-strip {
+    height: 48px;
+  }
+
+  .summary-strip strong {
+    font-size: 15px;
+  }
+}

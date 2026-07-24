@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>幻想シアター公演配分プランナー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Antique&display=swap" rel="stylesheet">
+  <link rel="icon" id="faviconLink" href="./images/default-theater-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=4">
+</head>
+<body>
+  <div id="overlay" class="overlay"></div>
+
+  <header class="app-header">
+    <div class="header-title">
+      <h1 id="appTitle"><img id="titleIcon" class="title-icon" src="./images/default-theater-icon.svg" alt=""><span id="appTitleText">幻想シアター公演配分プランナー</span></h1>
+    </div>
+    <div id="monthSwitcher" class="month-switcher" aria-label="月切り替え"></div>
+    <div class="header-actions">
+      <button id="menuButton" type="button" class="menu-button" aria-label="キャラ一覧を開く">☰</button>
+      <button id="howToButton" type="button" class="howto-button" aria-label="使い方">？</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside id="rosterPanel" class="roster-panel" aria-label="キャラ一覧">
+      <section class="toolbar">
+        <button id="rosterCount" type="button" class="roster-count"></button>
+      </section>
+
+      <nav class="roster-tabs" aria-label="キャラ一覧・公演詳細・設定の切り替え">
+        <button type="button" id="rosterTabCharacters" class="roster-tab active">キャラ一覧</button>
+        <button type="button" id="rosterTabOverview" class="roster-tab">公演詳細</button>
+        <button type="button" id="rosterTabSettings" class="roster-tab">設定</button>
+      </nav>
+
+      <section id="characterListPanel" class="character-list-panel">
+        <div class="search-row">
+          <input id="searchInput" type="search" placeholder="名前・タグで検索">
+        </div>
+        <button id="filterToggle" type="button" class="filter-toggle">
+          <span>絞り込み</span><span id="filterToggleIcon" class="filter-toggle-icon">表示 ▾</span>
+        </button>
+        <div id="filterPanel" class="filter-panel hidden">
+          <label class="traveler-row">
+            今月の主人公の元素
+            <select id="travelerSelect"></select>
+          </label>
+          <div class="filter-panel-head">
+            <span class="filter-panel-head-label">元素・タグ</span>
+            <button id="filterResetButton" type="button" class="filter-reset-btn">リセット</button>
+          </div>
+          <div id="elementFilters" class="chip-row" aria-label="元素フィルター"></div>
+          <div id="tagFilters" class="chip-row tags" aria-label="タグフィルター"></div>
+          <label class="toggle-row">
+            <input id="showAllToggle" type="checkbox">
+            今月使えないキャラも表示する
+          </label>
+        </div>
+        <section id="characterList" class="character-list" aria-label="キャラクター"></section>
+      </section>
+
+      <section id="phaseOverviewPanel" class="phase-overview-panel hidden">
+        <div id="phaseOverviewList" class="phase-overview-list"></div>
+      </section>
+
+      <section id="rosterSettingsPanel" class="roster-settings-panel hidden">
+        <p class="settings-title">表示設定</p>
+        <label class="toggle-row">
+          <input id="darkModeToggle" type="checkbox">
+          ナイトモード（暗い配色）
+        </label>
+        <label class="toggle-row">
+          <input id="showOwnershipToggle" type="checkbox">
+          所持状態のチェックボックスを表示する
+        </label>
+        <label class="toggle-row">
+          <input id="autoRosterToggle" type="checkbox">
+          編成状況で出演可能なキャラを全選択された状態で開始する
+        </label>
+        <div class="settings-actions">
+          <button id="exportPlanButton" type="button">書き出し</button>
+          <label class="file-button">
+            読み込み
+            <input id="importPlanInput" type="file" accept="application/json">
+          </label>
+        </div>
+        <div class="settings-reset">
+          <p class="settings-subtitle">今開いている月のデータを初期化</p>
+          <button id="resetAssignmentsButton" type="button" class="danger reset-scope-btn" data-label="キャラの配置状況のみ初期化">キャラの配置状況のみ初期化</button>
+          <button id="resetActionsButton" type="button" class="danger reset-scope-btn" data-label="シャイニングブレス・キャラ招待のみ初期化">シャイニングブレス・キャラ招待のみ初期化</button>
+          <button id="resetBothButton" type="button" class="danger reset-scope-btn" data-label="両方とも初期化">両方とも初期化</button>
+          <button id="undoResetButton" type="button" class="hidden">元に戻す</button>
+          <p class="settings-hint">※ 所持状況・レベル・待機キャスト・個人メモ・他の月のデータは消えません。</p>
+        </div>
+      </section>
+    </aside>
+
+    <section class="planner-panel" aria-label="配置表">
+      <div class="planner-sticky-head">
+        <div class="plan-status">
+          <div>
+            <p class="eyebrow">12 phases</p>
+            <h2>幕ごとの配置</h2>
+          </div>
+          <div id="buffStatus" class="buff-status"></div>
+        </div>
+        <div class="arcana-row">
+          <div id="arcanaControls" class="arcana-controls" aria-label="アルカナ挿入位置"></div>
+          <section class="summary-strip" aria-label="全体サマリー">
+            <div>
+              <span>招待</span>
+              <strong id="inviteTotal">0</strong>
+            </div>
+            <div>
+              <span><img id="flowerIcon" class="inline-icon" alt="">最終幻戯の花<button type="button" class="tip-trigger" data-tip="実際はキャラからの応援で多少は+されるので、この数値よりも余裕がある場合があります（体感2回以上は起こりますが不確定要素です）。" aria-label="最終幻戯の花について">ⓘ</button></span>
+              <strong id="finalFlower">0</strong>
+            </div>
+          </section>
+        </div>
+        <div id="warnings" class="warnings" aria-live="polite"></div>
+      </div>
+      <div id="stageList" class="stage-list"></div>
+    </section>
+  </main>
+
+  <div id="characterPanelOverlay" class="modal-overlay char-panel-overlay hidden">
+    <aside class="char-panel" aria-label="キャラ詳細">
+      <div class="char-panel-header">
+        <h2>キャラ詳細</h2>
+        <button id="characterPanelClose" type="button" class="modal-close" aria-label="閉じる">×</button>
+      </div>
+      <div id="characterTabPanel" class="char-panel-body">
+        <div id="editorEmpty" class="empty-editor">一覧からキャラを選ぶと、固定タグ・今月の状態・個人メモを確認できます。</div>
+        <form id="characterEditor" class="character-editor hidden">
+          <div class="portrait-editor">
+            <div id="editorPortrait" class="portrait large"></div>
+            <div class="portrait-info">
+              <div id="editorStatus" class="editor-status"></div>
+              <div class="portrait-heading">
+                <span id="editorElementIcon" class="element-icon-badge"></span>
+                <span id="nameInput" class="name-display"></span>
+              </div>
+            </div>
+          </div>
+
+          <label>
+            レベル
+            <input id="levelInput" type="number" min="1" max="100">
+          </label>
+          <label id="ownershipRow" class="toggle-row hidden">
+            <input id="ownedInput" type="checkbox">
+            所持している
+          </label>
+          <label>
+            サポート効果のある聖遺物セット
+            <select id="artifactSetInput"></select>
+          </label>
+          <fieldset>
+            <legend>固定タグ</legend>
+            <div id="editorTags" class="read-only-tags"></div>
+          </fieldset>
+          <label id="magicToggleRow" class="toggle-row hidden">
+            <input id="magicVisibleInput" type="checkbox">
+            魔導タグを表示する
+          </label>
+          <label>
+            個人メモ
+            <textarea id="noteInput" rows="4" placeholder="役割、注意点、代替候補など"></textarea>
+          </label>
+        </form>
+      </div>
+    </aside>
+  </div>
+
+  <div id="menuModalOverlay" class="modal-overlay hidden">
+    <div class="menu-modal" role="dialog" aria-modal="true" aria-label="メニュー">
+      <nav class="menu-modal-nav" aria-label="メニュー切り替え">
+        <button type="button" id="menuTabRoster" class="menu-modal-tab">編成状況</button>
+        <button type="button" id="menuTabHowTo" class="menu-modal-tab">使い方</button>
+      </nav>
+      <div class="menu-modal-content">
+        <button id="menuModalClose" type="button" class="modal-close menu-modal-close" aria-label="閉じる">×</button>
+
+        <section id="menuPanelRoster" class="menu-panel">
+          <div class="roster-modal-sticky">
+            <div id="rosterModalStatus" class="roster-modal-status"></div>
+            <div id="rosterModalSummary" class="roster-modal-summary"></div>
+          </div>
+          <button id="rosterModalFilterToggle" type="button" class="filter-toggle roster-modal-filter-toggle">
+            <span>絞り込み</span><span id="rosterModalFilterIcon" class="filter-toggle-icon">表示 ▾</span>
+          </button>
+          <div id="rosterModalFilterPanel" class="roster-modal-filter-panel hidden">
+            <div class="filter-panel-head">
+              <span class="filter-panel-head-label">元素・タグ</span>
+              <button id="rosterModalFilterResetButton" type="button" class="filter-reset-btn">リセット</button>
+            </div>
+            <div id="rosterModalElementFilters" class="chip-row icon-only" aria-label="元素で絞り込み"></div>
+            <div id="rosterModalTagFilters" class="chip-row icon-only" aria-label="タグで絞り込み"></div>
+          </div>
+          <div id="rosterModalBody" class="roster-modal-body"></div>
+        </section>
+
+        <section id="menuPanelHowTo" class="menu-panel hidden">
+          <div id="howToModalBody" class="how-to-modal-body">
+            <p class="howto-lead">月諭モード想定です。</p>
+            <ul class="howto-steps">
+              <li>① まずは各幕の敵の相性を見て、相性の良いキャラを配置してみる</li>
+              <li>② 配置から逆算して、仲間イベントで引きたいキャラ・タイミングを洗い出す</li>
+              <li>③ 必要なキャラをもとに待機キャストを選抜し、キャラ招待／バフを管理</li>
+            </ul>
+
+            <p class="howto-note">
+              ※ 「公演詳細」タブや「ボス相性チェック」の<strong>金枠アイコン</strong>は、その幕で<strong>有効な元素・属性</strong>（元素／夜魂／月兆／プネウマ・ウーシア）を表します。配置の目安にどうぞ。<br>
+              ※ 同じ聖遺物4セットを2人以上編成しても、セット効果は重複しません。
+            </p>
+
+            <p class="howto-note">
+              ※ 仲間イベント時の幻戯の花の消費量は一律80として計算されます（6名選択・100消費の札は現在考慮していません）。<br>
+              <span class="howto-alert">※ 仲間イベントは8回に達していないと警告が出ます。</span>
+            </p>
+
+            <details class="howto-toggle" open>
+              <summary>なぜ仲間イベントが「最低8回」必要なのか？</summary>
+              <div class="howto-toggle-body">
+                <p>シアターをクリアするには、12回の戦闘ステージで毎回4キャラに編成枠を埋めてもらう必要があります（3人以下だと門前払いされ、それ以上進めない仕様です）。ゲーム全体で<strong>「48活力分の編成枠」</strong>を埋めなければなりません。</p>
+                <p>キャラクター1名につき2活力分埋めることができます（※ミステリーボーナス効果を除く）。</p>
+                <ul class="howto-calc-list">
+                  <li>開幕キャスト6名 ＝ 12活力分</li>
+                  <li>毎戦闘完了後にもらえる11名 ＝ 21活力分（※最後の1人は第10幕でしか活力を消費できないので1回分）</li>
+                </ul>
+                <p class="howto-calc-total">＝ 33活力分（ゲームのシステム的に確実にもらえる分）</p>
+                <p>クリアには48活力分の編成枠を埋める必要があるため、残りの<strong>15活力分</strong>は仲間イベントを選択して埋めなければなりません。</p>
+                <div class="howto-conclusion">
+                  残り2ステージ（あと2回戦闘）のフェーズの準備画面までに、仲間イベントを8回選択しておく必要があります。
+                </div>
+              </div>
+            </details>
+
+            <p class="howto-note">
+              ※ 第10幕でキャラ招待を+1すると、「最終フェーズでキャラ招待すると1回分しか使えないため非効率です」という警告がすでに出るようになっています。
+            </p>
+
+            <p class="howto-section-head">【設定】</p>
+            <p class="howto-note">
+              設定タブの初期化ボタンは<strong>今開いている月のデータだけ</strong>を対象にします。<br>
+              ・<strong>キャラの配置状況のみ初期化</strong>：各幕に置いたキャラだけをクリア。<br>
+              ・<strong>シャイニングブレス・キャラ招待のみ初期化</strong>：バフと招待の取得数だけをリセット。<br>
+              ・<strong>両方とも初期化</strong>：上の2つをまとめて。<br>
+              各ボタンは1回目で「実行」表示に変わり、もう一度押すと確定します（直後なら「元に戻す」で復元可能）。<br>
+              <span class="howto-alert">所持状況・レベル・待機キャスト・個人メモ・他の月のデータは消えません。</span>
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <nav id="mobileTabBar" class="mobile-tab-bar" aria-label="クイックメニュー">
+    <button type="button" id="tabBarRoster" class="tab-bar-item">
+      <svg class="tab-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>キャスト</span>
+    </button>
+    <button type="button" id="tabBarOverview" class="tab-bar-item">
+      <svg class="tab-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span>公演詳細</span>
+    </button>
+    <button type="button" id="tabBarCharacter" class="tab-bar-item">
+      <svg class="tab-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>キャラ詳細</span>
+    </button>
+    <button type="button" id="tabBarHowTo" class="tab-bar-item">
+      <svg class="tab-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>使い方</span>
+    </button>
+    <button type="button" id="tabBarSettings" class="tab-bar-item">
+      <svg class="tab-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>設定</span>
+    </button>
+  </nav>
+
+  <footer class="app-footer">本サイトは個人が制作した非公式のファンサイトです。<br>
+© All rights reserved by miHoYo. Other properties belong to their respective owners.</footer>
+
+  <template id="tileTemplate">
+    <article class="tile">
+      <button class="tile-select" type="button">
+        <span class="tile-label"></span>
+        <span class="portrait tile-portrait"></span>
+        <span class="tile-vitality"></span>
+        <span class="tile-name"></span>
+        <span class="tile-badges"></span>
+      </button>
+      <label class="tile-check">
+        <input type="checkbox" class="tile-roster">
+        待機キャスト
+      </label>
+    </article>
+  </template>
+
+  <template id="stageTemplate">
+    <article class="stage-card">
+      <header class="stage-header">
+        <button class="stage-title" type="button"></button>
+        <div class="stage-meta"></div>
+      </header>
+      <div class="enemy-row">
+        <div class="enemy-box"></div>
+        <div class="enemy-choice-row"></div>
+        <select class="enemy-choice-overlay hidden" aria-label="敵を選択"></select>
+      </div>
+      <div class="stage-controls"></div>
+      <div class="composition-strip"></div>
+      <div class="slot-grid"></div>
+      <div class="recommend-row"></div>
+      <label class="stage-note">
+        メモ
+        <textarea rows="2" placeholder="敵の注意点、編成候補、代替案など"></textarea>
+      </label>
+    </article>
+  </template>
+
+  <script src="./master-data.js?v=4"></script>
+  <script src="./app.js?v=4"></script>
+</body>
+</html>

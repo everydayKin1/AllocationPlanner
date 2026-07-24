@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# バックアップファイル（styles.css.bak など）
+*.bak
+
+# ローカル開発用の設定（GitHub Pages には不要）
+.claude/

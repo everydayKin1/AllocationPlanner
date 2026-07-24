@@ -1,2 +1,173 @@
-# AllocationPlanner
-幻想シアターの公演配分プランナー
+# 幻想シアター公演配分プランナー
+
+`index.html` を開くと使えます。GitHub Pages や Netlify などにこのフォルダごと置くと、同じURLを開いた人がそれぞれ自分のブラウザに配置・所持状態を保存できます。
+
+配布に必要なのはこの4ファイルです（画像を使う場合は画像フォルダも一緒に）。
+
+- `index.html`
+- `styles.css`
+- `app.js`
+- `master-data.js`
+
+## 保存の分担
+
+管理者（あなた）が更新するのは `master-data.js` だけです。
+
+- 月ごとの出演元素・開幕キャスト・特別招待キャスト・バフ名・敵情報（敵タグ含む）
+- キャラ名、画像、レベル、元素、固定タグ
+- 聖遺物セット一覧（`artifactSets`）と、用語ツールチップの文言（`glossary`）
+- ブランドアイコン（`icons`：ブラウザタブ・タイトル横・幻戯の花・元素・プネウマ/ウーシア・月兆・魔導）
+
+各ユーザーがブラウザ（localStorage）に保存するのは次です。サーバーには送りません。
+
+- 月ごとのキャラ配置・招待数・バフ取得数・メモ
+- アルカナの挿入位置
+- 今月の主人公の元素
+- 所持しているかどうか（初期状態はすべて「所持済み」）
+- レベル（初期値90、1〜100で編集可能）
+- 「今月これを編成に入れる」チェック（開幕キャスト以外）
+- 各キャラの聖遺物セット（同じ幕に同じセットが重なると警告バッジが出ます）
+- 「所持チェックボックスを表示する」などの表示設定
+
+## 使えるキャラの判定ルール
+
+一覧はデフォルトで「今月使えるキャラだけ」を表示します（「今月使えないキャラも表示する」で全表示）。判定は次のとおりです。
+
+- 開幕キャスト … 常に使える（所持・レベル不問）
+- 主人公 … 「今月の主人公の元素」で選んだ1体だけ使える
+- それ以外 … 所持している ＋ レベル70以上 ＋（今月の出演元素 または 特別招待キャスト）
+
+## 月データ（月次で書き換える場所）
+
+`months` に月を追加・編集します。バフの `id` は `buffA` / `buffB` / `buffC` のまま固定にしてください（配置データが月をまたいでも壊れません）。名前だけ月ごとに変えられます。
+
+```js
+{
+  id: "2026-07",
+  label: "2026年07月",
+  elements: ["炎", "水", "雷"],          // 今月の出演元素3種
+  travelerElements: ["炎", "水", "雷"],  // 主人公として選べる元素（出演元素のうち主人公が存在するもの）
+  openingCast: ["char-01", "char-02", "char-03", "char-08", "char-09", "char-10"], // 開幕キャスト6名（idで指定）
+  specialCast: ["char-06", "char-07"],   // 特別招待キャスト（元素外でも所持していれば使える）
+  buffs: [
+    { id: "buffA", name: "過負荷" },
+    { id: "buffB", name: "溶解" },
+    { id: "buffC", name: "超伝導" }
+  ],
+  icons: [
+    { label: "炎", icon: "炎" },
+    { label: "水", icon: "水" },
+    { label: "雷", icon: "雷" }
+  ],
+  stages: [
+    { id: "act-1", name: "第1幕", reward: 90, allowedElements: ["炎", "水", "雷"], enemy: { name: "敵の名前", icon: "剣", note: "備考" } }
+    // act-1〜act-9、arcana-1、arcana-2、act-10 まで
+  ]
+}
+```
+
+- 開幕キャストや特別招待は `characters` に登録済みの `id` を書きます。
+- 主人公は元素ごとに `tr-fire` `tr-water` … として登録済みです。`travelerElements` に元素名を並べれば選択肢に出ます（例：氷の主人公は存在しないので8月は `["風","岩"]`）。
+
+## キャラデータ
+
+```js
+{
+  id: "furina",
+  name: "フリーナ",
+  element: "水",
+  level: 90,
+  image: "./images/characters/furina.png",
+  availableFrom: 1,
+  tags: {
+    position: "オフフィールド",              // オンフィールド / オフフィールド
+    roles: ["サポーター", "ライフキーパー"],  // 複数可
+    weapon: "片手剣",                        // 片手剣 / 両手剣 / 法器 / 弓 / 長柄武器
+    nightsoul: false,                        // true のときだけ「夜魂の加護」を表示
+    pneumaOusia: "ウーシア",                 // プネウマ / ウーシア / 空文字
+    lunar: false,                            // true のときだけ「月兆」を表示
+    magic: true                              // true かつ Lv70以上で「魔導」を表示（ユーザー側で非表示可）
+  }
+}
+```
+
+主人公は `isTraveler: true` と `exclusiveGroup: "traveler"` を持ちます。所持状態は各ユーザーがブラウザ側で管理するので、`characters` に所持フラグは書きません。
+
+`id` は紐付けのキーです。名前を変えても `id` が同じなら、ユーザーの保存済み配置とつながります。
+
+## キャラ画像の紐付け
+
+`images/characters/` のようなフォルダを作り、`master-data.js` の `image` に相対パスを書きます（例：`./images/characters/furina.png`）。空文字なら元素色の頭文字アイコンになります。
+
+## Googleスプレッドシートで管理する場合
+
+おすすめは「スプレッドシートを入力場所にして、公開用データを `master-data.js` に変換する」流れです。キャラシートの列例：
+
+```text
+id,name,element,level,image,availableFrom,position,roles,weapon,nightsoul,pneumaOusia,lunar,magic
+furina,フリーナ,水,90,./images/characters/furina.png,1,オフフィールド,サポーター|ライフキーパー,片手剣,false,ウーシア,false,true
+```
+
+月シートの列例：
+
+```text
+monthId,monthLabel,elements,travelerElements,openingCast,specialCast,buffA,buffB,buffC
+2026-07,2026年07月,炎|水|雷,炎|水|雷,char-01|char-02|char-03|char-08|char-09|char-10,char-06|char-07,過負荷,溶解,超伝導
+```
+
+## アイコン・画像の差し込み口
+
+`master-data.js` の `icons` に画像パスを入れると、空文字の代わりに反映されます。
+
+```js
+icons: {
+  favicon: "./images/favicon.png",       // ブラウザタブのアイコン
+  header: "./images/title-icon.png",     // タイトル横のアイコン
+  flower: "./images/flower_icon.png",    // 幻戯の花アイコン（今後の表示箇所で使用予定）
+  elements: { "炎": "./images/elem_pyro.png" },
+  pneuma: "./images/pneuma_icon.png",
+  ousia: "./images/ousia_icon.png",
+  lunar: "./images/lunar_icon.png",
+  magic: "./images/magic_icon.png",
+  nightsoul: "./images/nightsoul_icon.png"
+}
+```
+
+空文字のままなら、`images/default-theater-icon.svg`（劇場アイコンの仮画像）がタブ・タイトル両方に使われます。
+
+## 聖遺物セット
+
+`artifactSets` に登録済みの10セットから、キャラごとに装備セットをユーザーが選べます（キャラ詳細の「聖遺物セット」欄）。同じ幕に同じセットのキャラが2名以上いると、配置表に警告バッジが出ます。アイコン画像は `artifactSets` の `icon` にパスを入れてください（現在は名前バッジのみ表示、画像は今後反映予定の差し込み口です）。
+
+## 敵タグとおすすめ表示
+
+`stages` の `enemy.tags` に `["夜魂の加護"]` のようにタグを設定すると、そのタグを持つキャラを幕に配置したときに★マークが付きます。また、スロット下に「この幕と相性が良さそうなキャラ」がおすすめとして自動で並びます（活力の残数は問いません）。
+
+`enemy.tags` には固定タグ（夜魂の加護・月兆・魔導・プネウマ/ウーシア）・役割（オンフィールド等）・武器種だけでなく、`"炎"` のような元素名も指定できます（そのキャラの `element` と一致すればマッチします）。元素だけを指定したい場合は `enemy.element: ["雷"]` のように別枠で書いてもOKです（`tags` と自動でまとめて判定されます）。
+
+特定のキャラを名指しでおすすめしたい場合は `enemy.recommendedCharacterIds: ["furina", "hutao"]` のようにキャラの `id` を配列で指定してください。`tags` と併用でき、`tags` がなくても `recommendedCharacterIds` だけでおすすめ表示を出せます。
+
+## 選択制の幕（敵を3種類から選ぶ幕）
+
+第1・2・4・5・7・9幕は「3種類の敵札から1つを選んで戦う」形式です。この場合、`stage.enemy` の代わりに `stage.enemyOptions` に敵情報の配列を入れてください。
+
+```js
+{
+  id: "act-1",
+  name: "第1幕",
+  reward: 90,
+  enemyOptions: [
+    { name: "群れの先鋒A", icon: "剣", note: "小型が多め。", tags: ["夜魂の加護"] },
+    { name: "群れの先鋒B", icon: "盾", note: "単体寄り。" },
+    { name: "群れの先鋒C", icon: "晶", note: "耐性が高め。", element: ["雷"] }
+  ]
+}
+```
+
+各項目は `enemy` と同じ形式（`name`/`icon`/`note`/`tags`/`element`/`recommendedCharacterIds`）です。画面上ではアイコン付きのチップが並び、クリックした敵の情報が上のボックスに表示されます（選んだ内容はブラウザに保存されます）。`enemyOptions` を書かなければ、これまで通り `enemy` 1件だけの表示になります。
+
+第3・6・8・10幕とアルカナ挑戦2は必ず単体のネームドボスなので、`enemyOptions` は不要で `enemy` のままでOKです。
+
+## 用語ツールチップ
+
+`glossary` の文言が、バフ・夜魂の加護・月兆・魔導・プネウマ/ウーシア・聖遺物セット重複の説明として、画面上の「ⓘ」アイコンから表示されます。文言は自由に書き換えられます。
