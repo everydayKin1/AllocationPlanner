@@ -1,13 +1,51 @@
 # 幻想シアター公演配分プランナー
 
-`index.html` を開くと使えます。GitHub Pages や Netlify などにこのフォルダごと置くと、同じURLを開いた人がそれぞれ自分のブラウザに配置・所持状態を保存できます。
+各幕の敵に合わせてキャラを配置し、招待回数・バフ・幻戯の花をシミュレーションできる静的Webアプリです。ビルド不要（HTML/CSS/JS＋画像だけ）。データは各ユーザーのブラウザ（localStorage）に保存され、サーバーには送りません。
 
-配布に必要なのはこの4ファイルです（画像を使う場合は画像フォルダも一緒に）。
+- **公開URL**：https://everydaykin1.github.io/AllocationPlanner/
+- **ホスティング**：GitHub Pages（リポジトリ `everydayKin1/AllocationPlanner` の `main` / `(root)`）
+- **ローカルで開くとき**：`index.html` をブラウザで直接開くか、このフォルダで簡易サーバーを立てて開く
+
+配布・公開に必要なのはこの4ファイルです（画像を使う場合は `images/` フォルダも一緒に）。
 
 - `index.html`
 - `styles.css`
 - `app.js`
 - `master-data.js`
+
+---
+
+## 🔁 更新のしかた（公開サイトへの反映）
+
+ファイルを直したら、**コミット → push するだけ**で1〜2分後に公開サイトへ自動反映されます。
+
+- GitHub Desktop：変更を確認 → **Commit to main** → **Push origin**
+- ターミナル：
+  ```bash
+  cd "パス/幻想シアター用・files"
+  git add -A
+  git commit -m "更新内容のメモ"
+  git push
+  ```
+
+## ⏰ 更新が必要なタイミング早見表（← ここ忘れがち）
+
+`index.html` の読み込み行には `?v=4` のような**バージョン番号**が付いています（`styles.css?v=4` / `app.js?v=4` / `master-data.js?v=4`）。
+**CSS・JS・データを変えたら、この数字を +1** してから push してください。これを忘れると、**前に開いた人のブラウザが古いキャッシュのまま**になり、修正が反映されないことがあります。
+
+| 変えたもの | やること |
+| --- | --- |
+| `styles.css` や `app.js` を編集 | ① `index.html` の `?v=4` を `?v=5` … に +1 → ② commit → push |
+| `master-data.js` を編集（月データ更新など） | 同上（`?v=` を +1 して push。データも確実に最新化される） |
+| 画像を追加・差し替え | `images/` に置く → `master-data.js` のパスを合わせる → `?v=` を +1 → push |
+| `README.md` など表示に関係ない文書だけ | `?v=` はそのままでOK → commit → push |
+
+> メモ：`?v=` は**数字を上げるほど「新しい版」**として扱われる、ただの通し番号です（意味は問わないので毎回 +1 でOK）。`styles.css` / `app.js` / `master-data.js` の3行はまとめて同じ数字に揃えておくと管理がラクです。
+
+## 🗓 定期的にやること
+
+- **毎月（新しい月が始まったら）**：`master-data.js` の `months` にその月のデータを追加／更新（出演元素・開幕キャスト・特別招待・バフ名・各幕の敵情報）。→ `?v=` を +1 して push。
+  - 詳しい書き方は下記「[月データ](#月データ月次で書き換える場所)」を参照。
 
 ## 保存の分担
 
@@ -77,7 +115,7 @@
   name: "フリーナ",
   element: "水",
   level: 90,
-  image: "./images/characters/furina.png",
+  image: "./images/character/furina.png",
   availableFrom: 1,
   tags: {
     position: "オフフィールド",              // オンフィールド / オフフィールド
@@ -97,7 +135,7 @@
 
 ## キャラ画像の紐付け
 
-`images/characters/` のようなフォルダを作り、`master-data.js` の `image` に相対パスを書きます（例：`./images/characters/furina.png`）。空文字なら元素色の頭文字アイコンになります。
+`images/character/` のようなフォルダを作り、`master-data.js` の `image` に相対パスを書きます（例：`./images/character/furina.png`）。空文字なら元素色の頭文字アイコンになります。
 
 ## Googleスプレッドシートで管理する場合
 
@@ -105,7 +143,7 @@
 
 ```text
 id,name,element,level,image,availableFrom,position,roles,weapon,nightsoul,pneumaOusia,lunar,magic
-furina,フリーナ,水,90,./images/characters/furina.png,1,オフフィールド,サポーター|ライフキーパー,片手剣,false,ウーシア,false,true
+furina,フリーナ,水,90,./images/character/furina.png,1,オフフィールド,サポーター|ライフキーパー,片手剣,false,ウーシア,false,true
 ```
 
 月シートの列例：
@@ -123,7 +161,7 @@ monthId,monthLabel,elements,travelerElements,openingCast,specialCast,buffA,buffB
 icons: {
   favicon: "./images/favicon.png",       // ブラウザタブのアイコン
   header: "./images/title-icon.png",     // タイトル横のアイコン
-  flower: "./images/flower_icon.png",    // 幻戯の花アイコン（今後の表示箇所で使用予定）
+  flower: "./images/flower_icon.png",    // 幻戯の花アイコン（サマリーの「最終幻戯の花」や各幕の消費表示で使用中）
   elements: { "炎": "./images/elem_pyro.png" },
   pneuma: "./images/pneuma_icon.png",
   ousia: "./images/ousia_icon.png",
