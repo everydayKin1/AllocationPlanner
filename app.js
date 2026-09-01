@@ -40,6 +40,7 @@
   function createDefaultState() {
     return {
       activeMonthId: getDefaultMonth().id,
+      lastKnownMonthId: getDefaultMonth().id,
       assignments: {},
       actions: {},
       characterNotes: {},
@@ -295,8 +296,17 @@
     return master.months || [getDefaultMonth()];
   }
 
+  // 一番新しい月（id が "YYYY-MM" なので文字列比較でよい）
+  function getNewestMonth() {
+    var months = master.months || [];
+    if (!months.length) return null;
+    return months.reduce(function (newest, month) {
+      return String(month.id) > String(newest.id) ? month : newest;
+    }, months[0]);
+  }
+
   function getDefaultMonth() {
-    return (master.months && master.months[0]) || { id: "default", label: "デフォルト", stages: master.stages || [] };
+    return getNewestMonth() || { id: "default", label: "デフォルト", stages: master.stages || [] };
   }
 
   function getCurrentMonth() {
@@ -369,6 +379,13 @@
   }
 
   function ensureStateShape() {
+    // マスターに新しい月が増えたら、その月を自動で開く。
+    // 一度追いついたら、あとはユーザーが選んだ月を保持する。
+    var newest = getNewestMonth();
+    if (newest && String(state.lastKnownMonthId || "") < String(newest.id)) {
+      state.activeMonthId = newest.id;
+      state.lastKnownMonthId = newest.id;
+    }
     if (!state.activeMonthId || !getMonths().some(function (item) { return item.id === state.activeMonthId; })) {
       state.activeMonthId = getDefaultMonth().id;
     }
