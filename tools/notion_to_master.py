@@ -295,6 +295,33 @@ def js(value):
     raise TypeError(type(value))
 
 
+def existing_character_order(source):
+    """現在の master-data.js に並んでいるキャラ id を順番どおりに取り出す。"""
+    try:
+        i = source.index("\n  characters: [")
+        j = source.index("\n  ]", i + 5)
+    except ValueError:
+        return []
+    return re.findall(r'\{\s*id:\s*"([^"]+)"', source[i:j])
+
+
+def sort_characters(chars, source):
+    """並び順は既存ファイルを踏襲する。
+    Notion の取得順は実行ごとに変わりうるため、そのまま出すと
+    差分が毎回発生し、アプリ側の表示順（元素ごとのまとまり）も崩れてしまう。
+    新しく増えたキャラは、元素順→名前順で末尾に足す。"""
+    order = {cid: n for n, cid in enumerate(existing_character_order(source))}
+    elements = ["炎", "水", "氷", "雷", "風", "岩", "草"]
+
+    def key(c):
+        if c["id"] in order:
+            return (0, order[c["id"]], "")
+        el = c.get("element", "")
+        return (1, elements.index(el) if el in elements else len(elements), c.get("name", ""))
+
+    return sorted(chars, key=key)
+
+
 def render_characters(chars):
     lines = []
     for c in chars:
@@ -349,6 +376,7 @@ def splice_block(source, key, new_body):
 
 
 def build_master_js(source, chars, months):
+    chars = sort_characters(chars, source)
     out = splice_block(source, "characters", render_characters(chars))
     out = splice_block(out, "months", render_months(months))
     return out
