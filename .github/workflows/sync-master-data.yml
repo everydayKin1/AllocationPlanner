@@ -1,0 +1,62 @@
+name: Notion から master-data.js を更新
+
+on:
+  schedule:
+    # 毎日 UTC 18:00 = 日本時間 3:00 に実行
+    - cron: "0 18 * * *"
+  workflow_dispatch:   # 手動実行もできる
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-master-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Python を用意
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 変換ロジックの自己検証
+        run: python3 tools/notion_to_master.py --selftest
+
+      - name: Notion から master-data.js を生成
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+        run: python3 tools/notion_to_master.py
+
+      - name: 変更があるか確認
+        id: diff
+        run: |
+          if git diff --quiet -- master-data.js; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "変更はありませんでした。"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat -- master-data.js
+          fi
+
+      - name: 生成物が壊れていないか確認
+        if: steps.diff.outputs.changed == 'true'
+        run: node --check master-data.js
+
+      - name: キャッシュ対策のバージョンを繰り上げ
+        if: steps.diff.outputs.changed == 'true'
+        run: python3 tools/bump_version.py
+
+      - name: コミットして push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add master-data.js index.html
+          git commit -m "Notion のデータで master-data.js を更新"
+          git push
