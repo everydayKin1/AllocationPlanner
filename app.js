@@ -18,6 +18,14 @@
   var rosterModalElement = "all";
   var rosterModalTags = new Set();
   var lastStateBeforeReset = null;
+  // 進行モード用。appMode は "plan"（計画）か "progress"（進行）。
+  var appMode = "plan";
+  var progressNextWarnedStageId = null; // 未配置警告を1度出した幕。2回目の▶で進む。
+  var joinPickerEl = null;
+  var joinPickerOutsideHandler = null;
+  var charBrowserElement = "all";
+  var charBrowserQuery = "";
+  var charBrowserSelectedId = null;
 
   var elementColor = {
     "炎": "#c74934",
@@ -41,11 +49,15 @@
       owned: {},
       travelerElement: {},
       levels: {},
+      constellation: {},
       roster: {},
       artifactSet: {},
       enemyChoice: {},
       autoRosterApplied: {},
-      settings: { showOwnership: true, autoRoster: false, darkMode: false }
+      progressStage: {},  // { 月id: 現在の幕id }
+      starAwards: {},     // { 月id: { 幕id: true } } 星章を獲得した幕
+      joined: {},         // { 月id: [{ id, stageId, via: "battle"|"invite" }] }
+      settings: { showOwnership: true, autoRoster: false, darkMode: false, mode: "plan" }
     };
   }
 
@@ -90,6 +102,48 @@
     tabBarCharacter: document.getElementById("tabBarCharacter"),
     tabBarHowTo: document.getElementById("tabBarHowTo"),
     tabBarSettings: document.getElementById("tabBarSettings"),
+    tabBarProgress: document.getElementById("tabBarProgress"),
+    modeToggle: document.getElementById("modeToggle"),
+    planLayout: document.querySelector("main.layout"),
+    progressLayout: document.getElementById("progressLayout"),
+    progressNav: document.getElementById("progressNav"),
+    progressPrev: document.getElementById("progressPrev"),
+    progressNext: document.getElementById("progressNext"),
+    progressNavLabel: document.getElementById("progressNavLabel"),
+    progressRail: document.getElementById("progressRail"),
+    progressRailMobile: document.getElementById("progressRailMobile"),
+    progressStageName: document.getElementById("progressStageName"),
+    progressStagePhase: document.getElementById("progressStagePhase"),
+    progressStageMeta: document.getElementById("progressStageMeta"),
+    progressEnemyBox: document.getElementById("progressEnemyBox"),
+    progressEnemyChoiceRow: document.getElementById("progressEnemyChoiceRow"),
+    progressEnemyChoiceOverlay: document.getElementById("progressEnemyChoiceOverlay"),
+    progressAffinity: document.getElementById("progressAffinity"),
+    progressSlotGrid: document.getElementById("progressSlotGrid"),
+    progressSlotWarning: document.getElementById("progressSlotWarning"),
+    progressControls: document.getElementById("progressControls"),
+    progressJoinArea: document.getElementById("progressJoinArea"),
+    progressRoster: document.getElementById("progressRoster"),
+    progressRosterCount: document.getElementById("progressRosterCount"),
+    progressNextBlock: document.getElementById("progressNextBlock"),
+    progressNextBody: document.getElementById("progressNextBody"),
+    progressComposition: document.getElementById("progressComposition"),
+    progressRemaining: document.getElementById("progressRemaining"),
+    progressElementSummary: document.getElementById("progressElementSummary"),
+    progressRosterCheck: document.getElementById("progressRosterCheck"),
+    progressBuffs: document.getElementById("progressBuffs"),
+    progressArcanaControls: document.getElementById("progressArcanaControls"),
+    menuTabCharacters: document.getElementById("menuTabCharacters"),
+    menuTabSettings: document.getElementById("menuTabSettings"),
+    menuPanelCharacters: document.getElementById("menuPanelCharacters"),
+    menuPanelSettings: document.getElementById("menuPanelSettings"),
+    menuSettingsHost: document.getElementById("menuSettingsHost"),
+    charBrowserElementFilters: document.getElementById("charBrowserElementFilters"),
+    charBrowserSearch: document.getElementById("charBrowserSearch"),
+    charBrowserOwned: document.getElementById("charBrowserOwned"),
+    charBrowserUnowned: document.getElementById("charBrowserUnowned"),
+    charBrowserDetail: document.getElementById("charBrowserDetail"),
+    progressInviteJoins: document.getElementById("progressInviteJoins"),
     darkModeToggle: document.getElementById("darkModeToggle"),
     showOwnershipToggle: document.getElementById("showOwnershipToggle"),
     autoRosterToggle: document.getElementById("autoRosterToggle"),
@@ -157,7 +211,11 @@
     buildRosterModalFilters();
     buildArtifactSetOptions();
     bindTipTriggers(document);
+    if (dom.menuSettingsHost && dom.rosterSettingsPanel) {
+      dom.menuSettingsHost.appendChild(dom.rosterSettingsPanel); // 設定はモーダルに集約
+    }
     bindEvents();
+    if (state.settings && state.settings.mode === "progress") appMode = "progress";
     renderTabBar();
     render();
   }
@@ -322,6 +380,7 @@
     getCurrentStages().forEach(function (stage) {
       if (!Array.isArray(assignments[stage.id])) assignments[stage.id] = Array(master.rules.slotsPerStage).fill(null);
       if (!actions[stage.id]) actions[stage.id] = { invites: 0, buffs: {} };
+      if (typeof actions[stage.id].cheers !== "number") actions[stage.id].cheers = 0;
       if (typeof stageNotes[stage.id] !== "string") stageNotes[stage.id] = "";
       buffs.forEach(function (buff) {
         if (typeof actions[stage.id].buffs[buff.id] !== "number") actions[stage.id].buffs[buff.id] = 0;
@@ -330,6 +389,20 @@
     getTravelerElement(month.id);
     if (!selectedStageId || !getCurrentStages().some(function (stage) { return stage.id === selectedStageId; })) {
       selectedStageId = getCurrentStages()[0].id;
+    }
+    // 進行モード用ストア（旧データにも後から生える）
+    if (!state.progressStage) state.progressStage = {};
+    if (!state.starAwards) state.starAwards = {};
+    if (!state.starAwards[month.id]) state.starAwards[month.id] = {};
+    if (!state.joined) state.joined = {};
+    if (!Array.isArray(state.joined[month.id])) state.joined[month.id] = [];
+    state.joined[month.id] = state.joined[month.id].filter(function (entry) {
+      return entry && entry.id && getCharacter(entry.id) &&
+        getCurrentStages().some(function (stage) { return stage.id === entry.stageId; });
+    });
+    if (!state.progressStage[month.id] ||
+        !getCurrentStages().some(function (stage) { return stage.id === state.progressStage[month.id]; })) {
+      state.progressStage[month.id] = getCurrentStages()[0].id;
     }
     if (state.settings && state.settings.autoRoster) {
       if (!state.autoRosterApplied) state.autoRosterApplied = {};
@@ -578,9 +651,11 @@
     chip.dataset.value = value;
     chip.title = label;
     chip.setAttribute("aria-label", label);
+    // 「すべて」はアイコンが無いので、切り詰めずに全文を出して横長ピルにする
+    if (value === "all") chip.classList.add("chip-all");
     chip.innerHTML = iconPath
       ? "<img class=\"chip-icon\" src=\"" + escapeHtml(iconPath) + "\" alt=\"\">"
-      : "<span class=\"chip-icon-fallback\">" + escapeHtml(label.slice(0, 2)) + "</span>";
+      : "<span class=\"chip-icon-fallback\">" + escapeHtml(value === "all" ? label : label.slice(0, 2)) + "</span>";
     chip.addEventListener("click", onClick);
     container.appendChild(chip);
   }
@@ -628,6 +703,14 @@
     dom.howToButton.addEventListener("click", function () { openMenuModal("howto"); });
     dom.menuTabRoster.addEventListener("click", function () { openMenuModal("roster"); });
     dom.menuTabHowTo.addEventListener("click", function () { openMenuModal("howto"); });
+    if (dom.menuTabCharacters) dom.menuTabCharacters.addEventListener("click", function () { openMenuModal("characters"); });
+    if (dom.menuTabSettings) dom.menuTabSettings.addEventListener("click", function () { openMenuModal("settings"); });
+    if (dom.charBrowserSearch) {
+      dom.charBrowserSearch.addEventListener("input", function () {
+        charBrowserQuery = dom.charBrowserSearch.value.trim();
+        renderCharBrowser();
+      });
+    }
     dom.menuModalClose.addEventListener("click", closeMenuModal);
     dom.menuModalOverlay.addEventListener("click", function (event) {
       if (event.target === dom.menuModalOverlay) closeMenuModal();
@@ -646,16 +729,29 @@
       rosterTab = "overview";
       renderRosterTabs();
     });
-    dom.rosterTabSettings.addEventListener("click", function () {
-      rosterTab = "settings";
-      renderRosterTabs();
-    });
+    dom.rosterTabSettings.addEventListener("click", function () { openMenuModal("settings"); });
+
+    if (dom.modeToggle) {
+      dom.modeToggle.addEventListener("click", function () {
+        setAppMode(appMode === "progress" ? "plan" : "progress");
+      });
+    }
+    if (dom.tabBarProgress) {
+      dom.tabBarProgress.addEventListener("click", function () {
+        setAppMode(appMode === "progress" ? "plan" : "progress");
+      });
+    }
+    if (dom.progressRosterCheck) {
+      dom.progressRosterCheck.addEventListener("click", function () { openMenuModal("roster"); });
+    }
+    if (dom.progressPrev) dom.progressPrev.addEventListener("click", function () { goToAdjacentStage(-1); });
+    if (dom.progressNext) dom.progressNext.addEventListener("click", function () { goToAdjacentStage(1); });
 
     dom.tabBarRoster.addEventListener("click", function () { openMenuModal("roster"); });
     dom.tabBarOverview.addEventListener("click", function () { openRosterTab("overview"); });
     dom.tabBarCharacter.addEventListener("click", openCharacterPanel);
     dom.tabBarHowTo.addEventListener("click", function () { openMenuModal("howto"); });
-    dom.tabBarSettings.addEventListener("click", function () { openRosterTab("settings"); });
+    dom.tabBarSettings.addEventListener("click", function () { openMenuModal("settings"); });
 
     dom.darkModeToggle.addEventListener("change", function () {
       state.settings.darkMode = dom.darkModeToggle.checked;
@@ -727,6 +823,7 @@
     renderSummary();
     renderCharacterPanel();
     renderMenuModal();
+    renderProgress();
     saveState();
   }
 
@@ -804,7 +901,7 @@
     dom.rosterTabSettings.classList.toggle("active", rosterTab === "settings");
     dom.characterListPanel.classList.toggle("hidden", rosterTab !== "characters");
     dom.phaseOverviewPanel.classList.toggle("hidden", rosterTab !== "overview");
-    dom.rosterSettingsPanel.classList.toggle("hidden", rosterTab !== "settings");
+    dom.rosterSettingsPanel.classList.remove("hidden"); // モーダルへ移設済み
     dom.showOwnershipToggle.checked = showOwnership();
     dom.autoRosterToggle.checked = Boolean(state.settings.autoRoster);
     dom.darkModeToggle.checked = isDarkMode();
@@ -835,7 +932,20 @@
     dom.menuTabHowTo.classList.toggle("active", activeMenuTab === "howto");
     dom.menuPanelRoster.classList.toggle("hidden", activeMenuTab !== "roster");
     dom.menuPanelHowTo.classList.toggle("hidden", activeMenuTab !== "howto");
+    if (dom.menuTabCharacters) dom.menuTabCharacters.classList.toggle("active", activeMenuTab === "characters");
+    if (dom.menuTabSettings) dom.menuTabSettings.classList.toggle("active", activeMenuTab === "settings");
+    if (dom.menuPanelCharacters) dom.menuPanelCharacters.classList.toggle("hidden", activeMenuTab !== "characters");
+    if (dom.menuPanelSettings) dom.menuPanelSettings.classList.toggle("hidden", activeMenuTab !== "settings");
+    // 絞り込みボタンは編成状況タブのときだけ出す
+    if (dom.rosterModalFilterToggle) {
+      dom.rosterModalFilterToggle.classList.toggle("hidden", activeMenuTab !== "roster");
+    }
+    if (dom.rosterModalFilterPanel && activeMenuTab !== "roster") {
+      dom.rosterModalFilterPanel.classList.add("hidden");
+      rosterModalFilterOpen = false;
+    }
     if (menuModalOpen && activeMenuTab === "roster") renderRosterModalContent();
+    if (menuModalOpen && activeMenuTab === "characters") renderCharBrowser();
     renderTabBar();
   }
 
@@ -907,15 +1017,15 @@
     });
   }
 
-  function renderArcanaControls() {
+  function renderArcanaInto(container) {
     var month = getCurrentMonth();
     var arcana = getRawStages(month).filter(function (s) { return s.special; });
-    dom.arcanaControls.innerHTML = "";
+    container.innerHTML = "";
     if (!arcana.length) {
-      dom.arcanaControls.classList.add("hidden");
+      container.classList.add("hidden");
       return;
     }
-    dom.arcanaControls.classList.remove("hidden");
+    container.classList.remove("hidden");
     var positions = getArcanaPositions(month.id);
     arcana.forEach(function (arc) {
       var min = parseActNum(arc.allowedFromAfter) || 1;
@@ -950,8 +1060,12 @@
         render();
       });
       textWrap.appendChild(select);
-      dom.arcanaControls.appendChild(label);
+      container.appendChild(label);
     });
+  }
+
+  function renderArcanaControls() {
+    renderArcanaInto(dom.arcanaControls);
   }
 
   function vitalityMarks(remaining, max) {
@@ -1060,12 +1174,40 @@
       : "オン";
     onFieldPill.innerHTML = onFieldIconHtml + escapeHtml(String(countOnFieldRostered()));
     dom.rosterModalSummary.appendChild(onFieldPill);
+
+    // 今月の主人公の元素は、元素アイコンの右に置く
+    var travelerOptions = month.travelerElements || month.elements || [];
+    if (travelerOptions.length) {
+      var travelerWrap = document.createElement("label");
+      travelerWrap.className = "roster-modal-traveler";
+      var travelerLabel = document.createElement("span");
+      travelerLabel.className = "roster-modal-traveler-label";
+      travelerLabel.textContent = "主人公";
+      travelerWrap.appendChild(travelerLabel);
+      var travelerSelect = document.createElement("select");
+      travelerSelect.className = "roster-modal-traveler-select";
+      var current = getTravelerElement(month.id);
+      travelerOptions.forEach(function (element) {
+        var option = document.createElement("option");
+        option.value = element;
+        option.textContent = element;
+        if (element === current) option.selected = true;
+        travelerSelect.appendChild(option);
+      });
+      travelerSelect.addEventListener("change", function () {
+        state.travelerElement[month.id] = travelerSelect.value;
+        selectedCharacterId = null;
+        render();
+      });
+      travelerWrap.appendChild(travelerSelect);
+      dom.rosterModalSummary.appendChild(travelerWrap);
+    }
     bindTipTriggers(dom.rosterModalSummary);
 
-    // 絞り込みは編成状況ヘッダーの sticky ブロック内に置き、スクロールしても追従させる
+    // 絞り込みボタンはモーダル本体に固定（閉じるボタンと同じ基準）。
+    // パネルだけを sticky ブロック内に置いて、開いてもボタン位置がずれないようにする。
     var stickyBlock = document.querySelector(".roster-modal-sticky");
-    if (stickyBlock) {
-      stickyBlock.appendChild(dom.rosterModalFilterToggle);
+    if (stickyBlock && dom.rosterModalFilterPanel.parentElement !== stickyBlock) {
       stickyBlock.appendChild(dom.rosterModalFilterPanel);
     }
 
@@ -1523,6 +1665,10 @@
           render();
         }, reactionIcon));
       });
+      controls.appendChild(numberControl("観客からの応援", actions[stage.id].cheers, 0, 12, function (value) {
+        actions[stage.id].cheers = value;
+        render();
+      }));
       var flower = document.createElement("div");
       flower.className = "flower-readout";
       var flowerIconPath = (master.icons && master.icons.flower) || "";
@@ -1659,13 +1805,11 @@
     overlaySelect.classList.remove("hidden");
     var selectedIndex = getSelectedEnemyIndex(stage);
 
-    var labelText = document.createElement("span");
-    labelText.textContent = "選択";
-    container.appendChild(labelText);
-    var arrow = document.createElement("span");
-    arrow.className = "enemy-choice-arrow";
-    arrow.textContent = "▾";
-    container.appendChild(arrow);
+    var swapIcon = document.createElement("span");
+    swapIcon.className = "enemy-choice-swap";
+    swapIcon.setAttribute("aria-label", "敵を選び直す");
+    swapIcon.title = "敵を選び直す";
+    container.appendChild(swapIcon);
 
     options.forEach(function (enemy, index) {
       var option = document.createElement("option");
@@ -1678,6 +1822,58 @@
       setSelectedEnemyIndex(stage, Number(overlaySelect.value));
       render();
     });
+  }
+
+  // シャイニングブレス用。上段=バフ名(+加算分)、下段=－ 現在Lv.X ＋
+  function buffControl(name, addValue, currentLevel, max, onChange, iconPath) {
+    addValue = addValue || 0;
+    var wrapper = document.createElement("div");
+    wrapper.className = "stepper-control buff-control" + (addValue > 0 ? " raised" : "");
+
+    var labelEl = document.createElement("span");
+    labelEl.className = "stepper-label buff-label";
+    if (iconPath) {
+      var icon = document.createElement("img");
+      icon.className = "pill-icon";
+      icon.src = iconPath;
+      icon.alt = "";
+      labelEl.appendChild(icon);
+    }
+    labelEl.appendChild(document.createTextNode(name));
+    if (addValue > 0) {
+      var add = document.createElement("span");
+      add.className = "buff-add";
+      add.textContent = "+" + addValue;
+      labelEl.appendChild(add);
+    }
+    wrapper.appendChild(labelEl);
+
+    var row = document.createElement("div");
+    row.className = "stepper-row";
+
+    var minus = document.createElement("button");
+    minus.type = "button";
+    minus.className = "stepper-btn";
+    minus.textContent = "－";
+    minus.disabled = addValue <= 0;
+    minus.addEventListener("click", function () { onChange(Math.max(0, addValue - 1)); });
+    row.appendChild(minus);
+
+    var valueEl = document.createElement("span");
+    valueEl.className = "stepper-value buff-level" + (addValue > 0 ? " raised" : "");
+    valueEl.textContent = "現在Lv." + currentLevel;
+    row.appendChild(valueEl);
+
+    var plus = document.createElement("button");
+    plus.type = "button";
+    plus.className = "stepper-btn";
+    plus.textContent = "＋";
+    plus.disabled = addValue >= max;
+    plus.addEventListener("click", function () { onChange(Math.min(max, addValue + 1)); });
+    row.appendChild(plus);
+
+    wrapper.appendChild(row);
+    return wrapper;
   }
 
   function numberControl(label, value, min, max, onChange, iconPath) {
@@ -1801,9 +1997,15 @@
     var elementOrder = master.elements || [];
     var maxVit = master.rules.maxVitality;
 
+    // 進行モードでは「その幕までに加入済み」のキャラだけを候補にする
+    var progressIds = appMode === "progress" ? getAvailableCharacterIds(getStageIndex(stage.id)) : null;
     var candidates = master.characters.filter(function (c) {
       if (c.isTraveler && !isTravelerActive(c)) return false;
-      if (!isUsableThisMonth(c)) return false;
+      if (progressIds) {
+        if (progressIds.indexOf(c.id) === -1) return false;
+      } else if (!isUsableThisMonth(c)) {
+        return false;
+      }
       if (placedInPhase.indexOf(c.id) !== -1) return false; // 同フェーズ重複は非表示
       return true;
     });
@@ -1850,7 +2052,7 @@
         if (isRecommendedCandidate(c, stage)) {
           var star = document.createElement("span");
           star.className = "slot-picker-star";
-          star.textContent = "★";
+          star.textContent = "👍";
           wrap.appendChild(star);
         }
         item.appendChild(wrap);
@@ -1876,7 +2078,9 @@
     slotPickerEl = bubble;
 
     // 位置は「その幕のキャラ枠グリッド」を基準にして、枠ごとに左右へ動かないようにする
-    var gridEl = dom.stageList.querySelector("[data-stage-id=\"" + stage.id + "\"] .slot-grid");
+    var gridEl = appMode === "progress"
+      ? dom.progressSlotGrid
+      : dom.stageList.querySelector("[data-stage-id=\"" + stage.id + "\"] .slot-grid");
     var anchor = gridEl ? gridEl.getBoundingClientRect() : { left: 24, top: 100, bottom: 140 };
     placeFixedInViewport(bubble, anchor, 6);
 
@@ -1970,6 +2174,182 @@
   function isRecommendedCandidate(character, stage) {
     if (getRecommendedCharacterIds(stage).indexOf(character.id) !== -1) return true;
     return matchesEnemyTags(character, stage);
+  }
+
+  /* ---------- 相性の悪い要素（回避）----------
+     「相性◎でなければ×」ではなく、敵に avoidElement / avoidTags が
+     登録されている場合だけ、それに一致するキャラを×として表示する。 */
+
+  function getAvoidElements(stage) {
+    var enemy = getSelectedEnemy(stage);
+    return (enemy && enemy.avoidElement) || [];
+  }
+
+  function getAvoidTags(stage) {
+    var enemy = getSelectedEnemy(stage);
+    return (enemy && enemy.avoidTags) || [];
+  }
+
+  function hasAvoidData(stage) {
+    return getAvoidElements(stage).length > 0 || getAvoidTags(stage).length > 0;
+  }
+
+  function matchesAvoid(character, stage) {
+    if (!hasAvoidData(stage)) return false;
+    if (getAvoidElements(stage).indexOf(character.element) !== -1) return true;
+    var charTags = getMatchableTags(character);
+    return getAvoidTags(stage).some(function (tag) { return charTags.indexOf(tag) !== -1; });
+  }
+
+  function getAvoidReasons(character, stage) {
+    if (!hasAvoidData(stage)) return [];
+    var charTags = getMatchableTags(character);
+    var reasons = [];
+    if (getAvoidElements(stage).indexOf(character.element) !== -1) reasons.push(character.element);
+    getAvoidTags(stage).forEach(function (tag) {
+      if (charTags.indexOf(tag) !== -1 && reasons.indexOf(tag) === -1) reasons.push(tag);
+    });
+    return reasons;
+  }
+
+  /* ---------- 進行モード：加入キャラの管理 ----------
+     開幕キャスト6名から始まり、各幕クリアで1名（最終幕を除く）、
+     キャラ招待でも1名ずつ増える。加入後は活力が残っていればずっと使える。 */
+
+  function getJoinEntries(monthId) {
+    if (!state.joined) state.joined = {};
+    if (!Array.isArray(state.joined[monthId])) state.joined[monthId] = [];
+    return state.joined[monthId];
+  }
+
+  function getBattleJoinAt(stageId) {
+    return getJoinEntries(getCurrentMonth().id).filter(function (entry) {
+      return entry.stageId === stageId && entry.via === "battle";
+    })[0] || null;
+  }
+
+  function getInviteJoinsAt(stageId) {
+    return getJoinEntries(getCurrentMonth().id).filter(function (entry) {
+      return entry.stageId === stageId && entry.via === "invite";
+    });
+  }
+
+  function getJoinEntryFor(characterId) {
+    return getJoinEntries(getCurrentMonth().id).filter(function (entry) {
+      return entry.id === characterId;
+    })[0] || null;
+  }
+
+  function isOpeningCast(character) {
+    return (getCurrentMonth().openingCast || []).indexOf(character.id) !== -1;
+  }
+
+  // 最終幕（第10幕）クリア後は加入がない
+  function stageGrantsBattleJoin(stageIndex) {
+    return stageIndex >= 0 && stageIndex < getCurrentStages().length - 1;
+  }
+
+  // その幕の時点で使えるキャラid。戦闘報酬は「次の幕から」、招待は「その幕から」。
+  function getAvailableCharacterIds(stageIndex) {
+    var ids = (getCurrentMonth().openingCast || []).slice();
+    var stages = getCurrentStages();
+    getJoinEntries(getCurrentMonth().id).forEach(function (entry) {
+      var idx = getStageIndex(entry.stageId);
+      if (idx === -1) return;
+      var availableFrom = entry.via === "invite" ? idx : idx + 1;
+      if (stageIndex >= availableFrom && ids.indexOf(entry.id) === -1) ids.push(entry.id);
+    });
+    return ids;
+  }
+
+  function addJoin(characterId, stageId, via) {
+    var monthId = getCurrentMonth().id;
+    var entries = getJoinEntries(monthId);
+    if (entries.some(function (entry) { return entry.id === characterId; })) {
+      var dup = getCharacter(characterId);
+      toast((dup ? dup.name : "このキャラ") + "はすでに加入済みです");
+      return false;
+    }
+    entries.push({ id: characterId, stageId: stageId, via: via });
+    if (via === "invite") {
+      var actions = getMonthStore(state.actions, monthId);
+      if (actions[stageId]) actions[stageId].invites = (actions[stageId].invites || 0) + 1;
+    }
+    return true;
+  }
+
+  // 招待回数の調整を伴わない取り消し（ステッパー側で回数を管理する場合に使う）
+  function removeJoinSilently(characterId) {
+    var entries = getJoinEntries(getCurrentMonth().id);
+    var idx = -1;
+    entries.forEach(function (entry, i) { if (entry.id === characterId) idx = i; });
+    if (idx !== -1) entries.splice(idx, 1);
+  }
+
+  function removeJoin(characterId) {
+    var monthId = getCurrentMonth().id;
+    var entries = getJoinEntries(monthId);
+    var idx = -1;
+    entries.forEach(function (entry, i) { if (entry.id === characterId) idx = i; });
+    if (idx === -1) return;
+    var entry = entries[idx];
+    entries.splice(idx, 1);
+    if (entry.via === "invite") {
+      var actions = getMonthStore(state.actions, monthId);
+      if (actions[entry.stageId]) {
+        actions[entry.stageId].invites = Math.max(0, (actions[entry.stageId].invites || 0) - 1);
+      }
+    }
+  }
+
+  function hasStarAward(stageId) {
+    var monthId = getCurrentMonth().id;
+    return Boolean(state.starAwards && state.starAwards[monthId] && state.starAwards[monthId][stageId]);
+  }
+
+  function toggleStarAward(stageId) {
+    var monthId = getCurrentMonth().id;
+    if (!state.starAwards) state.starAwards = {};
+    if (!state.starAwards[monthId]) state.starAwards[monthId] = {};
+    if (state.starAwards[monthId][stageId]) delete state.starAwards[monthId][stageId];
+    else state.starAwards[monthId][stageId] = true;
+    render();
+  }
+
+  function getProgressStage() {
+    var monthId = getCurrentMonth().id;
+    var stages = getCurrentStages();
+    var id = state.progressStage && state.progressStage[monthId];
+    var found = stages.filter(function (stage) { return stage.id === id; })[0];
+    return found || stages[0];
+  }
+
+  function setProgressStage(stageId) {
+    if (!state.progressStage) state.progressStage = {};
+    state.progressStage[getCurrentMonth().id] = stageId;
+    selectedStageId = stageId;
+    progressNextWarnedStageId = null;
+    activeSlot = null;
+    closeSlotPicker();
+    closeJoinPicker();
+    render();
+  }
+
+  function setAppMode(mode) {
+    appMode = mode === "progress" ? "progress" : "plan";
+    if (!state.settings) state.settings = {};
+    state.settings.mode = appMode;
+    activeSlot = null;
+    closeSlotPicker();
+    closeJoinPicker();
+    if (appMode === "progress") {
+      drawerOpen = false;
+      menuModalOpen = false;
+      characterPanelOpen = false;
+      selectedStageId = getProgressStage().id;
+    }
+    window.scrollTo(0, 0);
+    render();
   }
 
   function getMatchReasons(character, stage) {
@@ -2113,7 +2493,7 @@
     if (matchesEnemyTags(character, stage)) {
       var star = document.createElement("span");
       star.className = "match-star";
-      star.textContent = "★";
+      star.textContent = "👍";
       star.setAttribute("aria-label", "この幕の敵タグと相性が良いキャラです");
       button.appendChild(star);
     }
@@ -2180,13 +2560,1136 @@
     dom.magicVisibleInput.checked = !state.magicHidden[character.id];
   }
 
+  /* ---------- モーダルのキャラ一覧（所持・レベル・凸メモ） ---------- */
+
+  function getConstellation(characterId) {
+    if (!state.constellation) state.constellation = {};
+    var value = state.constellation[characterId];
+    return typeof value === "number" ? value : 0;
+  }
+
+  function buildCharBrowserFilters() {
+    var container = dom.charBrowserElementFilters;
+    if (!container) return;
+    container.innerHTML = "";
+    addIconChip(container, "all", charBrowserElement === "all", function () {
+      charBrowserElement = "all";
+      renderCharBrowser();
+    }, "", "すべて");
+    (master.elements || []).forEach(function (element) {
+      addIconChip(container, element, charBrowserElement === element, function () {
+        charBrowserElement = charBrowserElement === element ? "all" : element;
+        renderCharBrowser();
+      }, elementIconPath(element), element);
+    });
+  }
+
+  function matchesCharBrowser(character) {
+    if (charBrowserElement !== "all" && character.element !== charBrowserElement) return false;
+    if (!charBrowserQuery) return true;
+    return character.name.toLowerCase().indexOf(charBrowserQuery.toLowerCase()) !== -1;
+  }
+
+  function buildCharBrowserTile(character) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "cb-tile" + (charBrowserSelectedId === character.id ? " selected" : "");
+    applyElementColor(button, character.element);
+    var wrap = document.createElement("span");
+    wrap.className = "cb-tile-portrait-wrap";
+    var portrait = document.createElement("span");
+    portrait.className = "portrait cb-tile-portrait";
+    setPortrait(portrait, character);
+    wrap.appendChild(portrait);
+    wrap.appendChild(buildElemBadge(character, "slot-elem-badge"));
+    var con = getConstellation(character.id);
+    if (con > 0) {
+      var conBadge = document.createElement("span");
+      conBadge.className = "cb-tile-con";
+      conBadge.textContent = "C" + con;
+      wrap.appendChild(conBadge);
+    }
+    button.appendChild(wrap);
+    var name = document.createElement("span");
+    name.className = "cb-tile-name";
+    name.textContent = character.name;
+    button.appendChild(name);
+    var lv = document.createElement("span");
+    lv.className = "cb-tile-lv";
+    lv.textContent = "Lv." + getLevel(character);
+    button.appendChild(lv);
+    button.addEventListener("click", function () {
+      charBrowserSelectedId = character.id;
+      renderCharBrowser();
+    });
+    return button;
+  }
+
+  function renderCharBrowserDetail() {
+    var host = dom.charBrowserDetail;
+    if (!host) return;
+    host.innerHTML = "";
+    var character = charBrowserSelectedId ? getCharacter(charBrowserSelectedId) : null;
+    if (!character) {
+      var empty = document.createElement("p");
+      empty.className = "cb-detail-empty";
+      empty.textContent = "左の一覧からキャラを選ぶと、所持・レベル・凸を編集できます。";
+      host.appendChild(empty);
+      return;
+    }
+
+    var head = document.createElement("div");
+    head.className = "cb-detail-head";
+    var portrait = document.createElement("div");
+    portrait.className = "portrait cb-detail-portrait";
+    setPortrait(portrait, character);
+    head.appendChild(portrait);
+    var headText = document.createElement("div");
+    var nameEl = document.createElement("strong");
+    nameEl.className = "cb-detail-name";
+    nameEl.textContent = character.name;
+    headText.appendChild(nameEl);
+    var elemEl = document.createElement("div");
+    elemEl.className = "cb-detail-elem";
+    var elemIcon = elementIconPath(character.element);
+    elemEl.innerHTML = (elemIcon ? "<img class=\"comp-icon\" src=\"" + escapeHtml(elemIcon) + "\" alt=\"\">" : "") +
+      escapeHtml(character.element || "");
+    headText.appendChild(elemEl);
+    head.appendChild(headText);
+    host.appendChild(head);
+
+    if (!character.isTraveler) {
+      var ownRow = document.createElement("label");
+      ownRow.className = "toggle-row cb-detail-row";
+      var ownInput = document.createElement("input");
+      ownInput.type = "checkbox";
+      ownInput.checked = isOwned(character.id);
+      ownInput.addEventListener("change", function () {
+        state.owned[character.id] = ownInput.checked;
+        render();
+      });
+      ownRow.appendChild(ownInput);
+      ownRow.appendChild(document.createTextNode("所持している"));
+      host.appendChild(ownRow);
+    }
+
+    var lvRow = document.createElement("label");
+    lvRow.className = "cb-detail-row";
+    lvRow.appendChild(document.createTextNode("レベル"));
+    var lvInput = document.createElement("input");
+    lvInput.type = "number";
+    lvInput.min = 1;
+    lvInput.max = 100;
+    lvInput.value = getLevel(character);
+    lvInput.addEventListener("change", function () {
+      var value = parseInt(lvInput.value, 10);
+      if (isNaN(value)) return;
+      state.levels[character.id] = Math.max(1, Math.min(100, value));
+      render();
+    });
+    lvRow.appendChild(lvInput);
+    host.appendChild(lvRow);
+
+    var conRow = document.createElement("div");
+    conRow.className = "cb-detail-row";
+    var conLabel = document.createElement("span");
+    conLabel.className = "cb-detail-row-label";
+    conLabel.textContent = "凸状況";
+    conRow.appendChild(conLabel);
+    var conChips = document.createElement("div");
+    conChips.className = "cb-con-chips";
+    for (var i = 0; i <= 6; i++) {
+      (function (value) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "cb-con-chip" + (getConstellation(character.id) === value ? " active" : "");
+        chip.textContent = "C" + value;
+        chip.addEventListener("click", function () {
+          if (!state.constellation) state.constellation = {};
+          state.constellation[character.id] = value;
+          render();
+        });
+        conChips.appendChild(chip);
+      })(i);
+    }
+    conRow.appendChild(conChips);
+    host.appendChild(conRow);
+
+    var tagsWrap = document.createElement("div");
+    tagsWrap.className = "cb-detail-tags read-only-tags";
+    getVisibleTags(character, { ignoreMagicHidden: true }).forEach(function (tag) {
+      var iconPath = tagIconPath(tag);
+      var badge = document.createElement("span");
+      badge.className = "tag-badge";
+      badge.innerHTML = (iconPath ? "<img class=\"tag-icon\" src=\"" + escapeHtml(iconPath) + "\" alt=\"\">" : "") + escapeHtml(tag);
+      tagsWrap.appendChild(badge);
+    });
+    host.appendChild(tagsWrap);
+
+    var noteLabel = document.createElement("label");
+    noteLabel.className = "cb-detail-row cb-detail-note";
+    noteLabel.appendChild(document.createTextNode("個人メモ"));
+    var note = document.createElement("textarea");
+    note.rows = 3;
+    note.placeholder = "役割、注意点、代替候補など";
+    note.value = state.characterNotes[character.id] || "";
+    note.addEventListener("input", function () {
+      state.characterNotes[character.id] = note.value;
+      saveState();
+    });
+    noteLabel.appendChild(note);
+    host.appendChild(noteLabel);
+  }
+
+  function renderCharBrowser() {
+    if (!dom.charBrowserOwned) return;
+    buildCharBrowserFilters();
+    var owned = [];
+    var unowned = [];
+    master.characters.forEach(function (character) {
+      if (character.isTraveler && !isTravelerActive(character)) return;
+      if (!matchesCharBrowser(character)) return;
+      if (character.isTraveler || isOwned(character.id)) owned.push(character);
+      else unowned.push(character);
+    });
+    var order = master.elements || [];
+    function sorter(a, b) {
+      var ea = order.indexOf(a.element), eb = order.indexOf(b.element);
+      if (ea !== eb) return ea - eb;
+      return a.name.localeCompare(b.name, "ja");
+    }
+    owned.sort(sorter);
+    unowned.sort(sorter);
+
+    dom.charBrowserOwned.innerHTML = "";
+    owned.forEach(function (character) { dom.charBrowserOwned.appendChild(buildCharBrowserTile(character)); });
+    dom.charBrowserUnowned.innerHTML = "";
+    unowned.forEach(function (character) { dom.charBrowserUnowned.appendChild(buildCharBrowserTile(character)); });
+    var unownedLabel = document.querySelector(".char-browser-section-label");
+    if (unownedLabel) unownedLabel.classList.toggle("hidden", unowned.length === 0);
+    renderCharBrowserDetail();
+  }
+
   function renderTabBar() {
     if (!dom.tabBarRoster) return;
     dom.tabBarRoster.classList.toggle("active", menuModalOpen && activeMenuTab === "roster");
     dom.tabBarOverview.classList.toggle("active", drawerOpen && rosterTab === "overview");
     dom.tabBarCharacter.classList.toggle("active", characterPanelOpen);
     dom.tabBarHowTo.classList.toggle("active", menuModalOpen && activeMenuTab === "howto");
-    dom.tabBarSettings.classList.toggle("active", drawerOpen && rosterTab === "settings");
+    dom.tabBarSettings.classList.toggle("active", menuModalOpen && activeMenuTab === "settings");
+    if (dom.tabBarProgress) dom.tabBarProgress.classList.toggle("active", appMode === "progress");
+  }
+
+  /* ---------- 進行モードの描画 ---------- */
+
+  function stageMetaParts(stage) {
+    var stageType = STAGE_TYPE_BY_ID[stage.id];
+    var objective = STAGE_OBJECTIVE_BY_ID[stage.id];
+    var parts = [];
+    if (stage.special) parts.push({ text: "特別挑戦", cls: "type-special" });
+    if (stage.final) parts.push({ text: "最終戦", cls: "" });
+    if (stageType === "boss") parts.push({ text: "ボス", cls: "type-boss" });
+    if (objective) parts.push({ text: objective, cls: "type-objective" });
+    return parts;
+  }
+
+  function buildTagOrElementChip(name, cls) {
+    var chip = document.createElement("span");
+    chip.className = "affinity-chip " + cls;
+    var iconPath = elementIconPath(name) || tagIconPath(name);
+    if (iconPath) {
+      var img = document.createElement("img");
+      img.className = "comp-icon affinity-chip-icon";
+      img.src = iconPath;
+      img.alt = "";
+      chip.appendChild(img);
+    }
+    chip.appendChild(document.createTextNode(name));
+    return chip;
+  }
+
+  function renderAffinityInto(container, stage, options) {
+    options = options || {};
+    container.innerHTML = "";
+    var enemy = getSelectedEnemy(stage);
+    var goodElements = (enemy.element || []).slice();
+    var goodTags = (enemy.tags || []).slice();
+    var good = goodElements.concat(goodTags.filter(function (tag) { return goodElements.indexOf(tag) === -1; }));
+    var bad = getAvoidElements(stage).concat(getAvoidTags(stage));
+
+    if (good.length) {
+      var goodRow = document.createElement("div");
+      goodRow.className = "affinity-row good";
+      var goodLabel = document.createElement("span");
+      goodLabel.className = "affinity-label";
+      goodLabel.textContent = options.compact ? "◎" : "相性のいい要素";
+      goodRow.appendChild(goodLabel);
+      good.forEach(function (name) { goodRow.appendChild(buildTagOrElementChip(name, "good")); });
+      container.appendChild(goodRow);
+    }
+    // 相性の悪い要素は「登録されている場合だけ」表示する
+    if (bad.length) {
+      var badRow = document.createElement("div");
+      badRow.className = "affinity-row bad";
+      var badLabel = document.createElement("span");
+      badLabel.className = "affinity-label";
+      badLabel.textContent = options.compact ? "✕" : "相性の悪い要素";
+      badRow.appendChild(badLabel);
+      bad.forEach(function (name) { badRow.appendChild(buildTagOrElementChip(name, "bad")); });
+      container.appendChild(badRow);
+    }
+    if (!good.length && !bad.length && !options.compact) {
+      var none = document.createElement("p");
+      none.className = "affinity-empty";
+      none.textContent = "この幕には相性データが設定されていません。";
+      container.appendChild(none);
+    }
+  }
+
+  function progressPlaceCharacter(stage, characterId) {
+    var monthId = getCurrentMonth().id;
+    var assignments = getMonthStore(state.assignments, monthId);
+    var arr = assignments[stage.id] || [];
+    if (arr.indexOf(characterId) !== -1) {
+      var dup = getCharacter(characterId);
+      toast((dup ? dup.name : "このキャラ") + "は同じフェーズにすでにいます");
+      return;
+    }
+    var empty = arr.indexOf(null);
+    if (empty === -1) {
+      toast("4枠が埋まっています。外してから配置してください");
+      return;
+    }
+    activeSlot = { stageId: stage.id, slotIndex: empty };
+    placeCharacterInActiveSlot(characterId);
+  }
+
+  function renderProgressRailInto(container, stage) {
+    container.innerHTML = "";
+    var stages = getCurrentStages();
+    var monthId = getCurrentMonth().id;
+    var assignments = getMonthStore(state.assignments, monthId);
+    var currentIndex = getStageIndex(stage.id);
+    stages.forEach(function (item, index) {
+      var filled = (assignments[item.id] || []).filter(Boolean).length;
+      var button = document.createElement("button");
+      button.type = "button";
+      // ボス幕（第3/6/8/10幕）とアルカナ挑戦はアイコンを強調する
+      var isHighlight = STAGE_TYPE_BY_ID[item.id] === "boss" || Boolean(item.special);
+      button.className = "rail-item" +
+        (item.id === stage.id ? " current" : "") +
+        (index < currentIndex ? " past" : "") +
+        (item.special ? " special" : "") +
+        (isHighlight ? " highlight" : "");
+      var phase = document.createElement("span");
+      phase.className = "rail-phase";
+      phase.textContent = "F" + (index + 1);
+      button.appendChild(phase);
+      var enemy = getSelectedEnemy(item);
+      if (enemy && enemy.image) {
+        var icon = document.createElement("img");
+        icon.className = "rail-icon";
+        icon.src = enemy.image;
+        icon.alt = "";
+        button.appendChild(icon);
+      }
+      var name = document.createElement("span");
+      name.className = "rail-name";
+      name.textContent = item.name;
+      button.appendChild(name);
+      var count = document.createElement("span");
+      count.className = "rail-count" + (filled >= master.rules.slotsPerStage ? " ok" : "");
+      count.textContent = filled + "/" + master.rules.slotsPerStage;
+      if (hasStarAward(item.id)) {
+        var starMark = document.createElement("img");
+        starMark.className = "rail-star";
+        starMark.src = "./images/icon/Imported_Image.png";
+        starMark.alt = "星章獲得";
+        starMark.title = "星章獲得";
+        count.appendChild(starMark);
+      }
+      button.appendChild(count);
+      button.addEventListener("click", function () { setProgressStage(item.id); });
+      container.appendChild(button);
+    });
+  }
+
+  function renderProgressJoinArea(stage, stageIndex) {
+    var container = dom.progressJoinArea;
+    container.innerHTML = "";
+
+    // 戦闘報酬の加入（最終幕を除き、毎戦闘で必ず1名）
+    if (stageGrantsBattleJoin(stageIndex)) {
+      var battleRow = document.createElement("div");
+      battleRow.className = "join-row";
+      var battleLabel = document.createElement("span");
+      battleLabel.className = "join-row-label";
+      battleLabel.textContent = "公演成功後のキャラ加入（必ず1名）";
+      battleRow.appendChild(battleLabel);
+      battleRow.appendChild(buildJoinSlot(getBattleJoinAt(stage.id), stage, "battle"));
+      container.appendChild(battleRow);
+    }
+
+    // 星章獲得（タップでオン／オフ）
+    var starRow = document.createElement("div");
+    starRow.className = "join-row star-row";
+    var starLabel = document.createElement("span");
+    starLabel.className = "join-row-label";
+    starLabel.textContent = "星章獲得";
+    starRow.appendChild(starLabel);
+    var starBtn = document.createElement("button");
+    starBtn.type = "button";
+    var awarded = hasStarAward(stage.id);
+    starBtn.className = "star-award-btn" + (awarded ? " on" : "");
+    starBtn.setAttribute("aria-pressed", awarded ? "true" : "false");
+    starBtn.title = awarded ? "星章を獲得済み（タップで取り消し）" : "未獲得（タップで獲得にする）";
+    var starImg = document.createElement("img");
+    starImg.className = "star-award-icon";
+    starImg.src = "./images/icon/Imported_Image.png";
+    starImg.alt = "星章";
+    starBtn.appendChild(starImg);
+    starBtn.addEventListener("click", function () { toggleStarAward(stage.id); });
+    starRow.appendChild(starBtn);
+    container.appendChild(starRow);
+
+    // 招待で加入したキャラは「キャラ招待」と同じボックスに出す
+    var inviteBox = dom.progressInviteJoins;
+    inviteBox.innerHTML = "";
+    var invites = getInviteJoinsAt(stage.id);
+    if (invites.length) {
+      var label = document.createElement("span");
+      label.className = "join-row-label";
+      label.textContent = "キャラ招待で加入";
+      inviteBox.appendChild(label);
+      invites.forEach(function (entry) {
+        inviteBox.appendChild(buildJoinSlot(entry, stage, "invite"));
+      });
+    }
+  }
+
+  function buildJoinSlot(entry, stage, via) {
+    if (entry) {
+      var character = getCharacter(entry.id);
+      var chip = document.createElement("span");
+      chip.className = "join-chip" + (via === "invite" ? " invite" : "");
+      applyElementColor(chip, character ? character.element : "");
+      var portrait = document.createElement("span");
+      portrait.className = "portrait join-chip-portrait";
+      if (character) setPortrait(portrait, character);
+      chip.appendChild(portrait);
+      var name = document.createElement("span");
+      name.className = "join-chip-name";
+      name.textContent = character ? character.name : entry.id;
+      chip.appendChild(name);
+      var remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "join-chip-remove";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "加入登録を取り消す");
+      remove.addEventListener("click", function (event) {
+        event.stopPropagation();
+        removeJoin(entry.id);
+        render();
+      });
+      chip.appendChild(remove);
+      return chip;
+    }
+    var add = document.createElement("button");
+    add.type = "button";
+    add.className = "join-add";
+    add.textContent = via === "battle" ? "選択" : "＋ 招待で加入";
+    add.addEventListener("click", function (event) {
+      event.stopPropagation();
+      showJoinPicker(stage, via, add);
+    });
+    return add;
+  }
+
+  function closeJoinPicker() {
+    if (joinPickerEl && joinPickerEl.parentNode) joinPickerEl.parentNode.removeChild(joinPickerEl);
+    joinPickerEl = null;
+    if (joinPickerOutsideHandler) {
+      document.removeEventListener("click", joinPickerOutsideHandler, true);
+      joinPickerOutsideHandler = null;
+    }
+  }
+
+  function showJoinPicker(stage, via, anchorEl, options) {
+    options = options || {};
+    closeJoinPicker();
+    var joinedIds = getJoinEntries(getCurrentMonth().id).map(function (entry) { return entry.id; });
+    var opening = getCurrentMonth().openingCast || [];
+    var candidates = master.characters.filter(function (c) {
+      if (opening.indexOf(c.id) !== -1) return false;      // 開幕キャストは最初から使える
+      if (joinedIds.indexOf(c.id) !== -1) return false;    // 加入済み
+      if (c.isTraveler && !isTravelerActive(c)) return false;
+      return isUsableThisMonth(c);
+    });
+    candidates.sort(function (a, b) {
+      var ra = isRostered(a) ? 0 : 1;
+      var rb = isRostered(b) ? 0 : 1;
+      if (ra !== rb) return ra - rb;
+      var ma = isRecommendedCandidate(a, stage) ? 0 : 1;
+      var mb = isRecommendedCandidate(b, stage) ? 0 : 1;
+      if (ma !== mb) return ma - mb;
+      return (master.elements || []).indexOf(a.element) - (master.elements || []).indexOf(b.element);
+    });
+
+    var bubble = document.createElement("div");
+    bubble.className = "slot-picker join-picker";
+    var header = document.createElement("div");
+    header.className = "slot-picker-header";
+    header.textContent = via === "battle" ? "加入したキャラを選ぶ" : "招待で加入したキャラを選ぶ";
+    bubble.appendChild(header);
+
+    if (!candidates.length) {
+      var empty = document.createElement("div");
+      empty.className = "slot-picker-empty";
+      empty.textContent = "追加できるキャラがいません";
+      bubble.appendChild(empty);
+    } else {
+      var grid = document.createElement("div");
+      grid.className = "slot-picker-grid";
+      candidates.forEach(function (c) {
+        var item = document.createElement("button");
+        item.type = "button";
+        var offRoster = !isRostered(c);
+        item.className = "slot-picker-item" + (offRoster ? " off-roster" : "");
+        item.title = c.name + (offRoster ? "（待機キャスト未選択）" : "");
+        applyElementColor(item, c.element);
+        var wrap = document.createElement("span");
+        wrap.className = "slot-picker-portrait-wrap";
+        var portrait = document.createElement("span");
+        portrait.className = "portrait slot-picker-portrait";
+        setPortrait(portrait, c);
+        wrap.appendChild(portrait);
+        wrap.appendChild(buildElemBadge(c, "slot-picker-elem"));
+        if (isRecommendedCandidate(c, stage)) {
+          var star = document.createElement("span");
+          star.className = "slot-picker-star";
+          star.textContent = "👍";
+          wrap.appendChild(star);
+        }
+        item.appendChild(wrap);
+        var label = document.createElement("span");
+        label.className = "join-picker-name";
+        label.textContent = c.name;
+        item.appendChild(label);
+        item.addEventListener("click", function () {
+          if (addJoin(c.id, stage.id, via)) {
+            closeJoinPicker();
+            render();
+          }
+        });
+        grid.appendChild(item);
+      });
+      bubble.appendChild(grid);
+    }
+
+    document.body.appendChild(bubble);
+    joinPickerEl = bubble;
+    var rect = anchorEl ? anchorEl.getBoundingClientRect() : { left: 24, top: 100, bottom: 140 };
+    if (options.below) {
+      // アンカーの真下に開く（画面外にはみ出す場合だけ収める）
+      bubble.style.position = "fixed";
+      bubble.style.top = Math.min(rect.bottom + 6, window.innerHeight - bubble.offsetHeight - 8) + "px";
+      var left = Math.max(8, Math.min(rect.left, window.innerWidth - bubble.offsetWidth - 8));
+      bubble.style.left = left + "px";
+    } else {
+      placeFixedInViewport(bubble, rect, 6);
+    }
+    joinPickerOutsideHandler = function (event) {
+      if (joinPickerEl && !joinPickerEl.contains(event.target)) closeJoinPicker();
+    };
+    setTimeout(function () {
+      document.addEventListener("click", joinPickerOutsideHandler, true);
+    }, 0);
+  }
+
+  function renderProgressRoster(stage, stageIndex) {
+    var container = dom.progressRoster;
+    container.innerHTML = "";
+    var usage = calculateUsage();
+    var maxVit = master.rules.maxVitality;
+    var monthId = getCurrentMonth().id;
+    var assignments = getMonthStore(state.assignments, monthId);
+    var placed = (assignments[stage.id] || []).filter(Boolean);
+    var availableIds = getAvailableCharacterIds(stageIndex);
+    var characters = availableIds.map(getCharacter).filter(Boolean);
+    // 待機キャスト優先 → 相性◎ → 元素順
+    characters.sort(function (a, b) {
+      var ra = isRostered(a) || isOpeningCast(a) ? 0 : 1;
+      var rb = isRostered(b) || isOpeningCast(b) ? 0 : 1;
+      if (ra !== rb) return ra - rb;
+      var ma = isRecommendedCandidate(a, stage) ? 0 : 1;
+      var mb = isRecommendedCandidate(b, stage) ? 0 : 1;
+      if (ma !== mb) return ma - mb;
+      return (master.elements || []).indexOf(a.element) - (master.elements || []).indexOf(b.element);
+    });
+
+    dom.progressRosterCount.textContent = characters.length + "名";
+
+    if (!characters.length) {
+      var empty = document.createElement("p");
+      empty.className = "progress-empty";
+      empty.textContent = "使えるキャラがいません。";
+      container.appendChild(empty);
+      return;
+    }
+
+    characters.forEach(function (character) {
+      var remaining = maxVit - (usage[character.id] || 0);
+      var exhausted = remaining <= 0;
+      var isPlaced = placed.indexOf(character.id) !== -1;
+      var good = isRecommendedCandidate(character, stage);
+      var bad = matchesAvoid(character, stage);
+
+      var item = document.createElement("button");
+      item.type = "button";
+      item.className = "prog-char" +
+        (exhausted ? " exhausted" : "") +
+        (isPlaced ? " placed" : "") +
+        (bad ? " avoid" : "") +
+        (good ? " good" : "");
+      applyElementColor(item, character.element);
+      var reasons = [];
+      if (good) reasons.push("相性◎ " + getMatchReasons(character, stage).join("・"));
+      if (bad) reasons.push("相性✕ " + getAvoidReasons(character, stage).join("・"));
+      item.title = character.name + (reasons.length ? "（" + reasons.join(" / ") + "）" : "");
+
+      var wrap = document.createElement("span");
+      wrap.className = "prog-char-portrait-wrap";
+      var portrait = document.createElement("span");
+      portrait.className = "portrait prog-char-portrait";
+      setPortrait(portrait, character);
+      wrap.appendChild(portrait);
+      wrap.appendChild(buildElemBadge(character, "slot-elem-badge"));
+      if (good) {
+        var star = document.createElement("span");
+        star.className = "prog-char-star";
+        star.textContent = "👍";
+        wrap.appendChild(star);
+      }
+      if (bad) {
+        var warn = document.createElement("span");
+        warn.className = "prog-char-avoid";
+        warn.textContent = "✕";
+        wrap.appendChild(warn);
+      }
+      item.appendChild(wrap);
+
+      var name = document.createElement("span");
+      name.className = "prog-char-name";
+      name.textContent = character.name;
+      item.appendChild(name);
+
+      var vit = document.createElement("span");
+      vit.className = "prog-char-vitality";
+      vit.innerHTML = vitalityMarks(remaining, maxVit);
+      item.appendChild(vit);
+
+      var entry = getJoinEntryFor(character.id);
+      if (entry && entry.via === "invite") {
+        var inviteBadge = document.createElement("span");
+        inviteBadge.className = "prog-char-tag invite";
+        inviteBadge.textContent = "招待";
+        item.appendChild(inviteBadge);
+      } else if (isOpeningCast(character)) {
+        var openBadge = document.createElement("span");
+        openBadge.className = "prog-char-tag";
+        openBadge.textContent = "開幕";
+        item.appendChild(openBadge);
+      }
+
+      if (exhausted || isPlaced) {
+        item.disabled = true;
+      } else {
+        item.addEventListener("click", function () { progressPlaceCharacter(stage, character.id); });
+      }
+      container.appendChild(item);
+    });
+  }
+
+  function renderProgressNext(stageIndex) {
+    var stages = getCurrentStages();
+    var nextStage = stages[stageIndex + 1] || null;
+    var body = dom.progressNextBody;
+    body.innerHTML = "";
+    if (!nextStage) {
+      var done = document.createElement("p");
+      done.className = "progress-empty";
+      done.textContent = "これが最終フェーズです。ここをクリアすれば公演終了！";
+      body.appendChild(done);
+      return;
+    }
+
+    var enemy = getSelectedEnemy(nextStage);
+    var row = document.createElement("div");
+    row.className = "next-compact";
+
+    var label = document.createElement("span");
+    label.className = "next-compact-label";
+    label.textContent = "次";
+    row.appendChild(label);
+
+    if (enemy && enemy.image) {
+      var icon = document.createElement("img");
+      icon.className = "next-compact-icon";
+      icon.src = enemy.image;
+      icon.alt = enemy.name || "";
+      icon.title = nextStage.name + (enemy.name ? "　" + enemy.name : "");
+      row.appendChild(icon);
+    }
+
+    // 有利要素だけをチップで
+    var good = (enemy.element || []).concat((enemy.tags || []).filter(function (tag) {
+      return (enemy.element || []).indexOf(tag) === -1;
+    }));
+    good.forEach(function (name) {
+      var iconPath = elementIconPath(name) || tagIconPath(name);
+      var chip = document.createElement("span");
+      chip.className = "next-compact-chip";
+      chip.title = name;
+      if (iconPath) {
+        var img = document.createElement("img");
+        img.className = "comp-icon";
+        img.src = iconPath;
+        img.alt = name;
+        chip.appendChild(img);
+      } else {
+        chip.textContent = name;
+      }
+      row.appendChild(chip);
+    });
+    body.appendChild(row);
+
+    // 👍 の隣に、次の幕で活きるキャラのアイコンだけ並べる
+    var usage = calculateUsage();
+    var maxVit = master.rules.maxVitality;
+    var wanted = getAvailableCharacterIds(stageIndex + 1).map(getCharacter).filter(Boolean)
+      .filter(function (character) { return isRecommendedCandidate(character, nextStage); });
+    var wantedRow = document.createElement("div");
+    wantedRow.className = "next-compact-wanted";
+    var thumb = document.createElement("span");
+    thumb.className = "next-compact-thumb";
+    thumb.textContent = "👍";
+    wantedRow.appendChild(thumb);
+    if (!wanted.length) {
+      var none = document.createElement("span");
+      none.className = "next-compact-empty";
+      none.textContent = "該当なし";
+      wantedRow.appendChild(none);
+    } else {
+      wanted.forEach(function (character) {
+        var remaining = Math.max(0, maxVit - (usage[character.id] || 0));
+        var portrait = document.createElement("span");
+        portrait.className = "portrait next-compact-portrait" + (remaining <= 0 ? " exhausted" : "");
+        portrait.title = character.name + "（活力残り" + remaining + "）";
+        setPortrait(portrait, character);
+        wantedRow.appendChild(portrait);
+      });
+    }
+    body.appendChild(wantedRow);
+  }
+
+  // 配置中4名の編成状況。月兆は1名なら「初照」、2名以上で「満照」。
+  function renderProgressComposition(stage) {
+    var container = dom.progressComposition;
+    if (!container) return;
+    var monthId = getCurrentMonth().id;
+    var assignments = getMonthStore(state.assignments, monthId);
+    var placed = (assignments[stage.id] || []).filter(Boolean).map(getCharacter).filter(Boolean);
+    container.innerHTML = "";
+    if (!placed.length) {
+      container.classList.add("hidden");
+      return;
+    }
+    container.classList.remove("hidden");
+
+    var byElement = {};
+    var lunarCount = 0;
+    var magicCount = 0;
+    placed.forEach(function (character) {
+      byElement[character.element] = (byElement[character.element] || 0) + 1;
+      if (character.tags && character.tags.lunar) lunarCount += 1;
+      if (character.tags && character.tags.magic && getLevel(character) >= 70) magicCount += 1;
+    });
+
+    Object.keys(byElement).forEach(function (element) {
+      var pill = document.createElement("span");
+      pill.className = "comp-pill";
+      applyElementColor(pill, element);
+      var iconPath = elementIconPath(element);
+      pill.innerHTML = (iconPath ? "<img class=\"comp-icon\" src=\"" + escapeHtml(iconPath) + "\" alt=\"" + escapeHtml(element) + "\">" : escapeHtml(element)) + escapeHtml(String(byElement[element]));
+      container.appendChild(pill);
+    });
+
+    if (lunarCount >= 1) {
+      var lunarPill = document.createElement("span");
+      lunarPill.className = "comp-pill tagged";
+      var lunarIcon = tagIconPath("月兆");
+      var lunarLabel = lunarCount >= 2 ? "月兆・満照" : "月兆・初照";
+      lunarPill.innerHTML = (lunarIcon ? "<img class=\"comp-icon\" src=\"" + escapeHtml(lunarIcon) + "\" alt=\"\">" : "") +
+        escapeHtml(lunarLabel) + "<span class=\"comp-count\">" + lunarCount + "</span>";
+      container.appendChild(lunarPill);
+    }
+    if (magicCount >= 2) {
+      var magicPill = document.createElement("span");
+      magicPill.className = "comp-pill tagged";
+      var magicIcon = tagIconPath("魔導");
+      magicPill.innerHTML = (magicIcon ? "<img class=\"comp-icon\" src=\"" + escapeHtml(magicIcon) + "\" alt=\"\">" : "") +
+        "魔導秘儀<span class=\"comp-count\">" + magicCount + "</span>";
+      container.appendChild(magicPill);
+    }
+  }
+
+  // 特攻要素を持ち活力が残っているキャラ（出演可能／待機キャストのみ）
+  function getRemainingMatchers(stageItem, stageIndexForPool) {
+    var usage = calculateUsage();
+    var maxVit = master.rules.maxVitality;
+    var availableIds = {};
+    getAvailableCharacterIds(stageIndexForPool).forEach(function (id) { availableIds[id] = true; });
+
+    function alive(character) {
+      if (character.isTraveler && !isTravelerActive(character)) return false;
+      if ((maxVit - (usage[character.id] || 0)) <= 0) return false;
+      return isRecommendedCandidate(character, stageItem);
+    }
+
+    var ready = Object.keys(availableIds).map(getCharacter).filter(Boolean).filter(alive);
+    var locked = master.characters.filter(function (character) {
+      if (availableIds[character.id]) return false;
+      if (!isRostered(character)) return false;
+      return alive(character);
+    });
+    return { ready: ready, locked: locked };
+  }
+
+  function renderProgressRemaining(stageIndex) {
+    var container = dom.progressRemaining;
+    if (!container) return;
+    container.innerHTML = "";
+    var stages = getCurrentStages();
+    var rows = 0;
+
+    stages.slice(stageIndex).forEach(function (item, offset) {
+      var index = stageIndex + offset;
+      var enemyOptions = getEnemyOptions(item);
+      var selectedIdx = getSelectedEnemyIndex(item);
+      var anyAffinity = enemyOptions.some(function (e) {
+        return (e.element || []).length || (e.tags || []).length || (e.recommendedCharacterIds || []).length;
+      });
+      if (!anyAffinity) return;
+      var matchers = getRemainingMatchers(item, index);
+      var readyList = matchers.ready;
+      var lockedList = matchers.locked;
+
+      var wrap = document.createElement("div");
+      wrap.className = "remaining-item";
+
+      var row = document.createElement("button");
+      row.type = "button";
+      row.className = "remaining-row" + (index === stageIndex ? " current" : "") + (readyList.length === 0 ? " zero" : "");
+      var name = document.createElement("span");
+      name.className = "remaining-name";
+      name.textContent = item.name;
+      row.appendChild(name);
+
+      // 選択制の幕は全ての敵候補を等間隔で並べる（選択中を強調）
+      var chips = document.createElement("span");
+      chips.className = "remaining-chips" + (enemyOptions.length > 1 ? " multi" : "");
+      enemyOptions.forEach(function (enemyOpt, optIndex) {
+        var optWrap = document.createElement("span");
+        optWrap.className = "remaining-opt" +
+          (enemyOptions.length > 1 && optIndex === selectedIdx ? " selected" : "") +
+          (enemyOptions.length > 1 && optIndex !== selectedIdx ? " dim" : "");
+        optWrap.title = (enemyOpt.name || "") + (enemyOpt.note ? "／" + enemyOpt.note : "");
+        if (enemyOpt.image) {
+          var face = document.createElement("img");
+          face.className = "remaining-opt-face";
+          face.src = enemyOpt.image;
+          face.alt = enemyOpt.name || "";
+          optWrap.appendChild(face);
+        }
+        var labels = (enemyOpt.element || []).concat((enemyOpt.tags || []).filter(function (t) {
+          return (enemyOpt.element || []).indexOf(t) === -1;
+        }));
+        labels.slice(0, 3).forEach(function (label) {
+          var iconPath = elementIconPath(label) || tagIconPath(label);
+          var chip = document.createElement("span");
+          chip.className = "remaining-chip";
+          chip.title = label;
+          if (iconPath) {
+            var img = document.createElement("img");
+            img.className = "comp-icon";
+            img.src = iconPath;
+            img.alt = label;
+            chip.appendChild(img);
+          } else {
+            chip.textContent = label;
+          }
+          optWrap.appendChild(chip);
+        });
+        chips.appendChild(optWrap);
+      });
+      row.appendChild(chips);
+      var num = document.createElement("span");
+      num.className = "remaining-count";
+      num.textContent = readyList.length + "名";
+      if (lockedList.length) {
+        var lockedNum = document.createElement("span");
+        lockedNum.className = "remaining-count-locked";
+        lockedNum.textContent = "+" + lockedList.length;
+        lockedNum.title = "待機キャスト（未加入）";
+        num.appendChild(lockedNum);
+      }
+      row.appendChild(num);
+
+      var panel = document.createElement("div");
+      panel.className = "remaining-panel hidden";
+      if (!readyList.length && !lockedList.length) {
+        var empty = document.createElement("span");
+        empty.className = "remaining-panel-empty";
+        empty.textContent = "活力が残っている該当キャラがいません";
+        panel.appendChild(empty);
+      } else {
+        readyList.forEach(function (character) {
+          panel.appendChild(buildMiniCharIcon(character, false));
+        });
+        if (lockedList.length) {
+          var sep = document.createElement("span");
+          sep.className = "remaining-panel-sep";
+          panel.appendChild(sep);
+          lockedList.forEach(function (character) {
+            panel.appendChild(buildMiniCharIcon(character, true));
+          });
+        }
+      }
+      row.addEventListener("click", function () {
+        panel.classList.toggle("hidden");
+        row.classList.toggle("open", !panel.classList.contains("hidden"));
+      });
+      wrap.appendChild(row);
+      wrap.appendChild(panel);
+      container.appendChild(wrap);
+      rows += 1;
+    });
+
+    if (!rows) {
+      var none = document.createElement("p");
+      none.className = "progress-empty";
+      none.textContent = "この先の幕に相性データが設定されていません。";
+      container.appendChild(none);
+    }
+  }
+
+  function buildMiniCharIcon(character, locked) {
+    var usage = calculateUsage();
+    var maxVit = master.rules.maxVitality;
+    var remaining = Math.max(0, maxVit - (usage[character.id] || 0));
+    var chip = document.createElement("span");
+    chip.className = "mini-char" + (remaining <= 0 ? " exhausted" : "") + (locked ? " locked" : "");
+    chip.title = character.name + "（活力残り" + remaining + "）" + (locked ? "／待機キャスト・未加入" : "");
+    applyElementColor(chip, character.element);
+    var wrap = document.createElement("span");
+    wrap.className = "mini-char-wrap";
+    var portrait = document.createElement("span");
+    portrait.className = "portrait mini-char-portrait";
+    setPortrait(portrait, character);
+    wrap.appendChild(portrait);
+    wrap.appendChild(buildElemBadge(character, "slot-elem-badge"));
+    chip.appendChild(wrap);
+    var vit = document.createElement("span");
+    vit.className = "mini-char-vitality";
+    vit.innerHTML = locked ? "🔒" : vitalityMarks(remaining, maxVit);
+    chip.appendChild(vit);
+    return chip;
+  }
+
+  // 出演可能キャラ＋待機キャストのうち、活力が1以上のキャラを元素ごとに集計
+  function renderProgressElementSummary(stageIndex) {
+    var container = dom.progressElementSummary;
+    if (!container) return;
+    container.innerHTML = "";
+    var usage = calculateUsage();
+    var maxVit = master.rules.maxVitality;
+    var ids = {};
+    getAvailableCharacterIds(stageIndex).forEach(function (id) { ids[id] = true; });
+    master.characters.forEach(function (character) {
+      if (isRostered(character)) ids[character.id] = true;
+    });
+    var alive = Object.keys(ids).map(getCharacter).filter(Boolean).filter(function (character) {
+      if (character.isTraveler && !isTravelerActive(character)) return false;
+      return (maxVit - (usage[character.id] || 0)) >= 1;
+    });
+
+    var label = document.createElement("span");
+    label.className = "element-summary-label";
+    label.textContent = "活力が残っているキャラ";
+    container.appendChild(label);
+
+    var order = master.elements || [];
+    var monthElements = getCurrentMonth().elements || [];
+    var byElement = {};
+    alive.forEach(function (character) {
+      if (!byElement[character.element]) byElement[character.element] = [];
+      byElement[character.element].push(character);
+    });
+    var elements = Object.keys(byElement).sort(function (a, b) {
+      var ma = monthElements.indexOf(a), mb = monthElements.indexOf(b);
+      if ((ma !== -1) !== (mb !== -1)) return ma !== -1 ? -1 : 1;
+      if (ma !== -1 && mb !== -1) return ma - mb;
+      return order.indexOf(a) - order.indexOf(b);
+    });
+    if (!elements.length) {
+      var empty = document.createElement("span");
+      empty.className = "element-summary-empty";
+      empty.textContent = "活力が残っているキャラがいません";
+      container.appendChild(empty);
+      return;
+    }
+    elements.forEach(function (element) {
+      var group = document.createElement("span");
+      group.className = "element-summary-group";
+      applyElementColor(group, element);
+      var iconPath = elementIconPath(element);
+      if (iconPath) {
+        var img = document.createElement("img");
+        img.className = "comp-icon";
+        img.src = iconPath;
+        img.alt = element;
+        group.appendChild(img);
+      }
+      var count = document.createElement("span");
+      count.className = "element-summary-count";
+      count.textContent = String(byElement[element].length);
+      group.appendChild(count);
+      group.title = element + "：" + byElement[element].map(function (c) { return c.name; }).join("、");
+      container.appendChild(group);
+    });
+  }
+
+  function renderProgress() {
+    var isProgress = appMode === "progress";
+    if (dom.planLayout) dom.planLayout.classList.toggle("hidden", isProgress);
+    if (dom.progressLayout) dom.progressLayout.classList.toggle("hidden", !isProgress);
+    if (dom.progressNav) dom.progressNav.classList.toggle("hidden", !isProgress);
+    document.body.classList.toggle("progress-mode", isProgress);
+    if (dom.modeToggle) dom.modeToggle.textContent = isProgress ? "計画モードへ" : "進行モードへ";
+    if (!isProgress) return;
+
+    var stage = getProgressStage();
+    var stageIndex = getStageIndex(stage.id);
+    var stages = getCurrentStages();
+    var monthId = getCurrentMonth().id;
+    var assignments = getMonthStore(state.assignments, monthId);
+    var actions = getMonthStore(state.actions, monthId);
+    var usage = calculateUsage();
+    var flow = calculateFlowerFlow();
+
+    dom.progressStageName.textContent = stage.name;
+    dom.progressStagePhase.textContent = "フェーズ" + (stageIndex + 1);
+    dom.progressStageMeta.innerHTML = stageMetaParts(stage).map(function (part) {
+      return "<span" + (part.cls ? " class=\"" + part.cls + "\"" : "") + ">" + escapeHtml(part.text) + "</span>";
+    }).join("");
+
+    renderEnemyBox(dom.progressEnemyBox, stage);
+    renderEnemyChoiceRow(dom.progressEnemyChoiceRow, dom.progressEnemyChoiceOverlay, stage);
+    renderAffinityInto(dom.progressAffinity, stage, {});
+
+    // 配置枠（計画モードと同じ renderSlot を流用）
+    dom.progressSlotGrid.innerHTML = "";
+    dom.progressSlotGrid.dataset.stageId = stage.id;
+    (assignments[stage.id] || []).forEach(function (characterId, slotIndex) {
+      dom.progressSlotGrid.appendChild(renderSlot(stage, stageIndex, slotIndex, characterId, usage));
+    });
+
+    var filled = (assignments[stage.id] || []).filter(Boolean).length;
+    if (filled >= master.rules.slotsPerStage) progressNextWarnedStageId = null;
+    var showWarning = progressNextWarnedStageId === stage.id && filled < master.rules.slotsPerStage;
+    dom.progressSlotWarning.classList.toggle("hidden", !showWarning);
+    if (showWarning) {
+      dom.progressSlotWarning.textContent =
+        "未配置の枠があります（ゲームでも4キャラ登録しないと進めません）。もう一度「次の幕 ▶」を押すと進みます。";
+    }
+
+    // バフ・キャラ招待（計画モードと同じ actions を共有）
+    dom.progressControls.innerHTML = "";
+    dom.progressBuffs.innerHTML = "";
+    var inviteControl = numberControl("キャラ招待", actions[stage.id].invites, 0, 8, function (value) {
+      var before = actions[stage.id].invites || 0;
+      if (value > before) {
+        // ＋を押したら「誰を招待したか」を選ぶ吹き出しを下に出す（回数はaddJoinで+1）
+        var plusBtn = inviteControl.querySelectorAll(".stepper-btn")[1];
+        showJoinPicker(stage, "invite", plusBtn, { below: true });
+        return;
+      }
+      actions[stage.id].invites = value;
+      // －のときは、その幕の招待加入を新しい順に1件取り消す
+      var invited = getInviteJoinsAt(stage.id);
+      if (invited.length > value) removeJoinSilently(invited[invited.length - 1].id);
+      render();
+    });
+    dom.progressControls.appendChild(inviteControl);
+    getCurrentBuffs().forEach(function (buff) {
+      var currentLevel = flow.byStage[stage.id].buffLevelsAfter[buff.id];
+      var reactionIcon = (master.icons && master.icons.reactions && master.icons.reactions[buff.name]) || "";
+      dom.progressBuffs.appendChild(buffControl(buff.name, actions[stage.id].buffs[buff.id], currentLevel,
+        master.rules.buffMaxLevel, function (value) {
+          actions[stage.id].buffs[buff.id] = value;
+          render();
+        }, reactionIcon));
+    });
+    dom.progressControls.appendChild(numberControl("観客からの応援", actions[stage.id].cheers, 0, 12, function (value) {
+      actions[stage.id].cheers = value;
+      render();
+    }));
+    var flower = document.createElement("div");
+    flower.className = "flower-readout";
+    var flowerIconPath = (master.icons && master.icons.flower) || "";
+    var flowerIconHtml = flowerIconPath ? "<img class=\"inline-icon\" src=\"" + escapeHtml(flowerIconPath) + "\" alt=\"\">" : "";
+    var stageCost = flow.byStage[stage.id].before - flow.byStage[stage.id].afterAction;
+    flower.innerHTML = "<div class=\"flower-cost\">" + (stageCost > 0 ? "-" + stageCost : "±0") + "</div>" +
+      "<div class=\"flower-detail\">" + flowerIconHtml + flow.byStage[stage.id].before + " → " + flow.byStage[stage.id].afterAction +
+      " ・終了後" + flow.byStage[stage.id].afterReward + "</div>";
+    dom.progressControls.appendChild(flower);
+
+    if (dom.progressArcanaControls) renderArcanaInto(dom.progressArcanaControls);
+    renderProgressComposition(stage);
+    renderProgressRemaining(stageIndex);
+    renderProgressElementSummary(stageIndex);
+    renderProgressJoinArea(stage, stageIndex);
+    renderProgressRoster(stage, stageIndex);
+    renderProgressNext(stageIndex);
+    renderProgressRailInto(dom.progressRail, stage);
+    renderProgressRailInto(dom.progressRailMobile, stage);
+
+    dom.progressPrev.disabled = stageIndex <= 0;
+    dom.progressNext.disabled = stageIndex >= stages.length - 1;
+    dom.progressNavLabel.textContent = (stageIndex + 1) + " / " + stages.length;
+  }
+
+  function goToAdjacentStage(delta) {
+    var stages = getCurrentStages();
+    var stage = getProgressStage();
+    var index = getStageIndex(stage.id);
+    var monthId = getCurrentMonth().id;
+    var assignments = getMonthStore(state.assignments, monthId);
+
+    if (delta > 0) {
+      var filled = (assignments[stage.id] || []).filter(Boolean).length;
+      // 未配置があれば1回目は警告で止め、もう一度押されたら進む
+      if (filled < master.rules.slotsPerStage && progressNextWarnedStageId !== stage.id) {
+        progressNextWarnedStageId = stage.id;
+        render();
+        var warnEl = dom.progressSlotWarning;
+        if (warnEl && warnEl.scrollIntoView) warnEl.scrollIntoView({ block: "center", behavior: "smooth" });
+        return;
+      }
+    }
+    var next = index + delta;
+    if (next < 0 || next >= stages.length) return;
+    setProgressStage(stages[next].id);
   }
 
   function scrollToStage(target) {
@@ -2406,6 +3909,8 @@
         return sum + (action.buffs[buff.id] || 0);
       }, 0);
       var cost = (action.invites || 0) * master.rules.inviteCost + buffCount * master.rules.buffCost;
+      // 観客からの応援は1回につき幻戯の花+25（コストのマイナス扱い）
+      cost -= (action.cheers || 0) * ((master.rules && master.rules.cheerGain) || 25);
       var reward = getStageReward(stage);
       byStage[stage.id] = {
         before: flower,

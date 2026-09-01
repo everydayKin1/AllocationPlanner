@@ -3032,3 +3032,2372 @@ input[readonly] {
     font-size: 15px;
   }
 }
+
+/* ==================== 進行モード ==================== */
+
+.mode-toggle {
+  min-height: 30px;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-color: var(--gold);
+  background: rgba(255, 255, 255, .12);
+  color: #f6ecf7;
+}
+
+.mode-toggle:hover {
+  border-color: #f6ecf7;
+}
+
+.progress-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 216px;
+  gap: 13px;
+  padding: 13px 13px 90px;
+  align-items: start;
+}
+
+.progress-layout.hidden {
+  display: none;
+}
+
+.progress-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  min-width: 0;
+}
+
+/* レールはモバイル用。デスクトップでは2カラムの上に全幅で置く */
+.progress-rail-mobile {
+  grid-column: 1 / -1;
+}
+
+/* 左右の列は独立して縦に流す。行の高さが揃わないので、
+   「この幕の配置」と「次の幕プレビュー」の間に空きができない。 */
+.progress-col {
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  min-width: 0;
+}
+
+.progress-stage-card,
+.progress-block {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  padding: 9px 10px;
+}
+
+/* 敵ブロックは中の enemy-row が持つ余白を相殺して詰める */
+.progress-cell-enemy .enemy-row {
+  padding: 0;
+  margin: 0;
+  border-bottom: 0;
+}
+
+.progress-stage-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.progress-stage-name {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.progress-stage-phase {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.progress-block-title {
+  margin: 0 0 7px;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--accent-deep);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-block-count {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ---- 相性の表示 ---- */
+
+.progress-affinity {
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.affinity-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.affinity-label {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.affinity-row.good .affinity-label {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.affinity-row.bad .affinity-label {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.affinity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1.5px solid transparent;
+}
+
+.affinity-chip.good {
+  background: var(--ok-soft);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
+.affinity-chip.bad {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.affinity-chip-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.affinity-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ---- 未配置の警告 ---- */
+
+.progress-slot-warning {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.progress-slot-warning.hidden {
+  display: none;
+}
+
+/* ---- 加入キャラの登録 ---- */
+
+.progress-join-area {
+  margin-top: 10px;
+  border-top: 1.5px dashed var(--line);
+  padding-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.progress-join-heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--accent-deep);
+}
+
+.join-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.join-row-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  flex: none;
+  width: 100%;
+}
+
+.join-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 4px;
+  border-radius: 999px;
+  border: 1.5px solid var(--elem, var(--line-strong));
+  background: var(--elem-soft, var(--bg));
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.join-chip.invite {
+  border-style: dashed;
+}
+
+.join-chip-portrait {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+.join-chip-remove {
+  width: 18px;
+  min-height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.join-chip-remove:hover {
+  color: var(--warn);
+  background: transparent;
+}
+
+.join-add {
+  min-height: 32px;
+  padding: 5px 12px;
+  border-style: dashed;
+  font-size: 12px;
+  color: var(--accent-deep);
+}
+
+.join-picker-name {
+  display: block;
+  max-width: 68px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ---- 出演可能キャラ一覧 ---- */
+
+.progress-roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 8px;
+}
+
+.prog-char {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px 6px;
+  min-height: 0;
+  border: 1.5px solid var(--elem, var(--line-strong));
+  border-radius: var(--radius-sm);
+  background: var(--elem-soft, var(--paper));
+  text-align: center;
+}
+
+.prog-char.good {
+  box-shadow: 0 0 0 2px var(--ok-soft);
+}
+
+.prog-char.avoid {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  box-shadow: 0 0 0 2px var(--warn-soft);
+}
+
+.prog-char.exhausted,
+.prog-char.placed {
+  opacity: .45;
+  cursor: default;
+}
+
+.prog-char-portrait-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.prog-char-portrait {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.prog-char-star {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  font-size: 13px;
+  color: var(--gold);
+  text-shadow: 0 0 3px rgba(0, 0, 0, .5);
+}
+
+.prog-char-avoid {
+  position: absolute;
+  bottom: -3px;
+  left: -4px;
+  min-width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--warn);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.prog-char-next {
+  position: absolute;
+  bottom: -3px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink, #fff);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.prog-char-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.prog-char-vitality {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.prog-char-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg);
+}
+
+.prog-char-tag.invite {
+  color: var(--accent-deep);
+  background: var(--soft);
+}
+
+/* ---- 次の幕プレビュー ---- */
+
+.progress-next-body {
+  display: grid;
+  gap: 8px;
+}
+
+.progress-next-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-next-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+
+.progress-next-phase {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.progress-next-enemy {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.progress-next-note,
+.progress-next-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.progress-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ---- 右の12幕レール ---- */
+
+.progress-rail {
+  position: sticky;
+  top: 76px;
+  max-height: calc(100vh - 170px);
+  overflow: auto;
+  display: grid;
+  gap: 5px;
+  align-content: start;
+}
+
+.progress-rail-mobile {
+  display: none;
+}
+
+.rail-item {
+  display: grid;
+  grid-template-columns: 26px 28px 1fr auto;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  min-height: 0;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  text-align: left;
+  font-size: 11px;
+}
+
+.rail-item.current {
+  border-color: var(--accent);
+  background: var(--soft);
+  color: var(--accent-deep);
+}
+
+.rail-item.past {
+  opacity: .62;
+}
+
+.rail-item.special {
+  border-left-width: 4px;
+  border-left-color: var(--accent);
+}
+
+.rail-phase {
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 10px;
+}
+
+.rail-item.current .rail-phase {
+  color: var(--accent-deep);
+}
+
+.rail-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.rail-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.rail-count {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--warn);
+}
+
+.rail-count.ok {
+  color: var(--ok);
+}
+
+/* ---- 下部固定のナビ ---- */
+
+.progress-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+  background: var(--paper);
+  border-top: 1.5px solid var(--line-strong);
+  box-shadow: 0 -6px 16px rgba(40, 20, 45, .12);
+}
+
+.progress-nav.hidden {
+  display: none;
+}
+
+.progress-nav-btn {
+  min-height: 40px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 900;
+  border-color: var(--accent);
+  color: var(--accent-deep);
+  background: var(--soft);
+}
+
+.progress-nav-btn:disabled {
+  opacity: .4;
+  cursor: default;
+  border-color: var(--line-strong);
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.progress-nav-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* ---- モバイル ---- */
+
+@media (max-width: 860px) {
+  .mode-toggle {
+    display: none; /* モバイルは下タブの「進行」から切り替える */
+  }
+
+  .progress-layout {
+    grid-template-columns: 1fr;
+    padding: 10px 10px 150px;
+  }
+
+  /* スマホは1カラムに積む */
+  .progress-main {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .progress-rail {
+    display: none; /* 横スクロールの帯に置き換え */
+  }
+
+  .progress-rail-mobile {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .progress-rail-mobile .rail-item {
+    flex: none;
+    grid-template-columns: auto;
+    justify-items: center;
+    gap: 2px;
+    width: 68px;
+    padding: 6px 4px;
+  }
+
+  .progress-rail-mobile .rail-name {
+    max-width: 60px;
+    font-size: 10px;
+  }
+
+  .progress-stage-name {
+    font-size: 16px;
+  }
+
+  /* 進行モードではナビを下タブバー（実測60px）の真上に置く */
+  body.progress-mode .progress-nav {
+    bottom: calc(60px + env(safe-area-inset-bottom));
+    padding-bottom: 8px;
+  }
+
+  .progress-nav-btn {
+    min-height: 36px;
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+
+  .progress-roster {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  }
+}
+
+/* ---- 進行モード：配置枠を出演可能キャラと同じ縦長カードに ---- */
+
+.progress-slot-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.progress-slot-grid .slot {
+  position: relative;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  align-content: center;
+  min-height: 0;
+  padding: 8px 4px 6px;
+  gap: 3px;
+  text-align: center;
+}
+
+.progress-slot-grid .slot .portrait {
+  width: 44px;
+  height: 44px;
+}
+
+.progress-slot-grid .slot-portrait-wrap {
+  width: 44px;
+  height: 44px;
+}
+
+.progress-slot-grid .slot-name {
+  text-align: center;
+  max-width: 100%;
+}
+
+.progress-slot-grid .slot-name strong {
+  font-size: 11px;
+}
+
+.progress-slot-grid .slot-name span {
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+/* 空き枠・選択中は補足テキストを省いてアイコンだけに */
+.progress-slot-grid .slot:not(.filled) .slot-name span {
+  display: none;
+}
+
+.progress-slot-grid .artifact-badge {
+  display: none;
+}
+
+.progress-slot-grid .clear-slot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+}
+
+.progress-slot-grid .match-star {
+  left: 3px;
+  right: auto;
+}
+
+/* ---- 活力マークの視認性を上げる（背後に影） ---- */
+
+.prog-char-vitality .vital,
+.next-wanted-vitality .vital,
+.progress-slot-grid .slot-name .vital {
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, .55));
+}
+
+.prog-char-vitality .spent,
+.next-wanted-vitality .spent {
+  color: var(--line-strong);
+  filter: none;
+}
+
+.prog-char-vitality,
+.next-wanted-vitality {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+/* ---- 次の幕プレビュー：おすすめキャラのアイコン ---- */
+
+.progress-next-wanted {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1.5px dashed var(--line);
+}
+
+.progress-next-wanted-label {
+  width: 100%;
+  color: var(--accent-deep);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.progress-next-wanted-empty {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.next-wanted-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 4px 4px;
+  border: 1.5px solid var(--elem, var(--line-strong));
+  border-radius: var(--radius-sm);
+  background: var(--elem-soft, var(--bg));
+}
+
+.next-wanted-chip.exhausted {
+  opacity: .42;
+}
+
+.next-wanted-portrait-wrap {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+
+.next-wanted-portrait {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+/* 進行モードのバフ枠は幅が半分になるため、ステッパーを折り返して
+   幻戯の花の表示が潰れないようにする */
+.progress-cell-buff .stage-controls {
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  margin-bottom: 0;
+}
+
+.progress-cell-buff .flower-readout {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  text-align: right;
+  padding-top: 4px;
+  border-top: 1.5px dashed var(--line);
+}
+
+/* ---- 進行モード：編成状況（月兆・魔導）と この先の残数 ---- */
+
+.progress-composition {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1.5px dashed var(--line);
+}
+
+.progress-composition.hidden {
+  display: none;
+}
+
+.progress-composition .comp-count {
+  margin-left: 4px;
+  opacity: .85;
+}
+
+.progress-affinity {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.progress-remaining {
+  display: grid;
+  gap: 3px;
+}
+
+.remaining-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  min-height: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  font-size: 11px;
+}
+
+.remaining-row:hover {
+  background: var(--bg);
+  border-color: transparent;
+}
+
+.remaining-row.current {
+  background: var(--soft);
+  color: var(--accent-deep);
+  font-weight: 900;
+}
+
+.remaining-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.remaining-chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.remaining-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.remaining-chip .comp-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.remaining-count {
+  min-width: 34px;
+  text-align: right;
+  font-weight: 900;
+  color: var(--ok);
+}
+
+.remaining-row.zero .remaining-count {
+  color: var(--warn);
+}
+
+/* デスクトップ：1段目は幕｜敵、その下は左右それぞれ独立して縦に流す */
+@media (min-width: 861px) {
+  /* レールはデスクトップでは非表示なので、内容は1〜2行目に置く */
+  .progress-cell-stage { grid-column: 1; grid-row: 1; }
+  .progress-cell-enemy { grid-column: 2; grid-row: 1; }
+  .progress-col-left   { grid-column: 1; grid-row: 2; }
+  .progress-col-right  { grid-column: 2; grid-row: 2; }
+}
+
+/* モバイル：ラッパーを display:contents で解体し、order で並び替える */
+@media (max-width: 860px) {
+  .progress-col {
+    display: contents;
+  }
+
+  .progress-main > * { order: 9; }
+  .progress-rail-mobile { order: 0; }
+  .progress-cell-stage { order: 1; }
+  .progress-cell-enemy { order: 2; }
+  .progress-cell-slots { order: 3; }
+  .progress-slot-warning:not(.hidden) { order: 4; }
+  .progress-cell-roster { order: 5; }
+  .progress-cell-buff { order: 6; }
+  .progress-next { order: 7; }
+  .progress-cell-remaining { order: 8; }
+}
+
+/* ---- 進行モード：加入キャラ欄（配置の下）・元素サマリー・残数の吹き出し ---- */
+
+.progress-join-area {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1.5px dashed var(--line);
+}
+
+.progress-join-area:empty {
+  display: none;
+}
+
+/* 出演可能キャラの下の元素サマリー */
+.progress-element-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1.5px dashed var(--line);
+}
+
+.element-summary-label {
+  width: 100%;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.element-summary-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1.5px solid var(--elem, var(--line-strong));
+  background: var(--elem-soft, var(--bg));
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.element-summary-group .comp-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.element-summary-empty {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* この先の幕：行をタップすると下にアイコンが開く */
+.remaining-item {
+  display: grid;
+}
+
+.remaining-row.open {
+  background: var(--bg);
+}
+
+.remaining-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 7px 8px 9px;
+  margin-bottom: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.remaining-panel.hidden {
+  display: none;
+}
+
+.remaining-panel-empty {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.mini-char {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 3px 3px;
+  border: 1.5px solid var(--elem, var(--line-strong));
+  border-radius: var(--radius-sm);
+  background: var(--elem-soft, var(--paper));
+}
+
+.mini-char.exhausted {
+  opacity: .42;
+}
+
+.mini-char-wrap {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.mini-char-portrait {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.mini-char-vitality {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.mini-char-vitality .vital {
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, .55));
+}
+
+.mini-char-vitality .spent {
+  color: var(--line-strong);
+}
+
+/* 下部ナビの「待機キャストの確認」 */
+.progress-nav-sub {
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent-deep);
+  background: transparent;
+  border-color: var(--line-strong);
+}
+
+@media (max-width: 860px) {
+  .progress-nav {
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: space-between;
+  }
+
+  .progress-nav-sub {
+    order: 3;
+    min-height: 30px;
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .progress-nav-label {
+    order: 2;
+  }
+}
+
+/* =========================================================
+   進行モード：視覚ノイズの整理
+   ・枠線を減らし、背景色と余白で区切る
+   ・見出しと本文の強弱をつける
+   ・角丸は --radius / --radius-sm / 999px(ピル) / 50%(円) に統一
+   ========================================================= */
+
+/* --- 1. 枠線の減量：カードは「線」ではなく「面」で分ける --- */
+
+.progress-layout {
+  background: var(--bg);
+}
+
+.progress-block {
+  border: 0;
+  box-shadow: 0 1px 2px rgba(40, 20, 45, .05);
+  padding: 11px 12px;
+}
+
+/* カード内の点線・実線の仕切りは余白に置き換える */
+.progress-composition,
+.progress-join-area,
+.progress-element-summary,
+.progress-next-wanted,
+.progress-cell-buff .flower-readout {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.progress-composition { margin-top: 10px; }
+.progress-join-area { margin-top: 12px; }
+.progress-element-summary { margin-top: 12px; }
+.progress-next-wanted { padding-top: 2px; }
+.progress-cell-buff .flower-readout { padding-top: 2px; }
+
+/* --- 2. 見出しと本文のジャンプ率 --- */
+
+.progress-block-title {
+  font-size: 14.5px;
+  font-weight: 900;
+  letter-spacing: .01em;
+  margin-bottom: 9px;
+}
+
+.progress-stage-name {
+  font-size: 19px;
+}
+
+.join-row-label,
+.element-summary-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* --- 3. 空き枠・追加ボタンの点線をやめて「面」で表現 --- */
+
+.progress-slot-grid .slot {
+  border: 0;
+  background: var(--bg);
+}
+
+.progress-slot-grid .slot:not(.filled) {
+  background: var(--muted-surface);
+  color: var(--muted);
+}
+
+.progress-slot-grid .slot.filled {
+  background: var(--elem-soft, var(--paper));
+  box-shadow: inset 0 0 0 1.5px var(--elem, var(--line-strong));
+}
+
+.progress-slot-grid .slot.armed {
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.progress-slot-grid .slot.invalid {
+  background: var(--warn-soft);
+  box-shadow: inset 0 0 0 1.5px var(--warn);
+}
+
+.join-add {
+  border: 0;
+  background: var(--muted-surface);
+  color: var(--accent-deep);
+  border-radius: var(--radius-sm);
+}
+
+.join-add:hover {
+  background: var(--soft);
+}
+
+.join-chip {
+  border: 0;
+  background: var(--elem-soft, var(--bg));
+  border-radius: var(--radius-sm);
+}
+
+/* --- 4. キャラカード：枠線をやめ、背景の色味で元素を示す --- */
+
+.prog-char {
+  border: 0;
+  background: var(--elem-soft, var(--bg));
+  box-shadow: none;
+}
+
+.prog-char.good {
+  box-shadow: none; /* ★マークで足りるのでリングは出さない */
+}
+
+.prog-char.avoid {
+  background: var(--warn-soft);
+  box-shadow: inset 0 0 0 1.5px var(--warn);
+}
+
+.next-wanted-chip,
+.mini-char {
+  border: 0;
+  background: var(--elem-soft, var(--bg));
+}
+
+/* 相性チップも枠を外して面だけに */
+.affinity-chip {
+  border: 0;
+}
+
+.element-summary-group {
+  border: 0;
+  background: var(--elem-soft, var(--bg));
+}
+
+/* --- 5. ステッパーの丸ボタンを軽く --- */
+
+.progress-cell-buff .stepper-btn {
+  border: 0;
+  background: var(--bg);
+  color: var(--accent-deep);
+}
+
+.progress-cell-buff .stepper-btn:hover {
+  background: var(--soft);
+}
+
+/* --- 6. 右のレール：枠線を消し、選択中だけ背景で示す --- */
+
+.rail-item {
+  border: 0;
+  background: transparent;
+  padding: 5px 8px;
+  color: var(--muted);
+}
+
+.rail-item:hover {
+  background: var(--paper);
+}
+
+.rail-item.current {
+  background: var(--soft);
+  color: var(--accent-deep);
+  font-weight: 900;
+}
+
+.rail-item.special {
+  border-left: 0;
+}
+
+.rail-count {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.rail-count.ok {
+  color: var(--ok);
+}
+
+.rail-item.current .rail-count {
+  color: var(--accent-deep);
+}
+
+/* モバイルの横帯だけは、カード感を残さないと押しにくいので薄い面を敷く */
+.progress-rail-mobile .rail-item {
+  background: var(--paper);
+}
+
+.progress-rail-mobile .rail-item.current {
+  background: var(--soft);
+}
+
+/* --- 7. この先の残数：行の区切りも面で --- */
+
+.remaining-row {
+  border-radius: var(--radius-sm);
+}
+
+.remaining-panel {
+  background: var(--muted-surface);
+}
+
+/* --- 8. 警告は主張が必要なので面で強めに（線は左のみ） --- */
+
+.progress-slot-warning {
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- 9. 下部ナビ --- */
+
+.progress-nav {
+  border-top: 0;
+  box-shadow: 0 -4px 14px rgba(40, 20, 45, .10);
+}
+
+.progress-nav-sub {
+  border: 0;
+  background: var(--bg);
+}
+
+.progress-nav-btn {
+  border: 0;
+  background: var(--soft);
+}
+
+.progress-nav-btn:disabled {
+  background: var(--bg);
+}
+
+/* ---- アイコンと文字の縦位置を中央に揃える ---- */
+
+.affinity-chip,
+.element-summary-group,
+.comp-pill,
+.remaining-chip,
+.rail-count,
+.buff-label {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.affinity-chip .comp-icon,
+.affinity-chip-icon,
+.element-summary-group .comp-icon,
+.comp-pill .comp-icon,
+.remaining-chip .comp-icon {
+  display: block;
+  flex: none;
+}
+
+.element-summary-count,
+.comp-pill .comp-count {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* ---- 元素アイコンの視認性：灰色背景をやめ、白い円の上に置く ---- */
+
+.element-summary-group .comp-icon,
+.affinity-chip .comp-icon,
+.affinity-chip-icon,
+.remaining-chip .comp-icon {
+  background: var(--icon-surface);
+  border-radius: 50%;
+  padding: 1px;
+  box-shadow: 0 0 0 1px rgba(40, 20, 45, .12);
+}
+
+.element-summary-group {
+  background: var(--paper);
+  padding: 3px 9px 3px 4px;
+  gap: 5px;
+}
+
+.affinity-chip {
+  background: var(--paper);
+  padding-left: 4px;
+  gap: 5px;
+}
+
+.affinity-chip.good { color: var(--ok); }
+.affinity-chip.bad { color: var(--warn); }
+
+/* ---- シャイニングブレス：上段=名前(+加算)、下段=－ 現在Lv.X ＋ ---- */
+
+.progress-buff-row {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  margin-bottom: 10px;
+}
+
+.progress-action-row {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  margin-bottom: 0;
+}
+
+.buff-control .buff-label {
+  justify-content: center;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.buff-add {
+  color: var(--gold);
+  font-weight: 900;
+}
+
+.buff-level {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.buff-level.raised {
+  color: var(--gold);
+  font-weight: 900;
+}
+
+/* 招待で加入したキャラのチップ（キャラ招待と同じボックス内） */
+.progress-invite-joins {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.progress-invite-joins:empty {
+  display: none;
+}
+
+.progress-invite-joins .join-row-label {
+  width: 100%;
+}
+
+/* ---- 幻戯の花：アイコンを詳細行の左へ ---- */
+
+.progress-cell-buff .flower-detail {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+/* ---- 活力サマリー行 ＋ 待機キャスト確認ボタン ---- */
+
+.progress-element-summary-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.progress-element-summary {
+  margin-top: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-roster-check {
+  flex: none;
+  min-height: 30px;
+  padding: 5px 11px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--accent-deep);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.progress-roster-check:hover {
+  background: var(--soft);
+}
+
+/* ---- この先の幕：待機キャストは間を空けてロック付きで ---- */
+
+.remaining-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  justify-content: flex-end;
+}
+
+.remaining-count-locked {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.remaining-panel-sep {
+  width: 100%;
+  height: 0;
+  margin: 2px 0;
+  border-top: 1px dashed var(--line-strong);
+  opacity: .6;
+}
+
+.mini-char.locked {
+  opacity: .8;
+  background: var(--muted-surface);
+}
+
+.mini-char.locked .mini-char-portrait {
+  filter: grayscale(.5);
+}
+
+.mini-char.locked .mini-char-vitality {
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+/* ---- 進行モードの細部調整 ---- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* 出演可能キャラは5列（長い名前でも入るように） */
+.progress-roster {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.prog-char-name {
+  font-size: 10.5px;
+}
+
+/* シャイニングブレスと 招待/応援 の間に余白 */
+.progress-buff-row {
+  margin-bottom: 18px;
+}
+
+/* 加入キャラを選ぶ枠は金色で目立たせる */
+.join-add {
+  background: rgba(199, 154, 58, .14);
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1.5px var(--gold);
+  font-weight: 900;
+}
+
+.join-add:hover {
+  background: rgba(199, 154, 58, .26);
+}
+
+/* コピーライトが下部ナビに隠れないように */
+body.progress-mode .app-footer {
+  padding-bottom: 86px;
+}
+
+/* 編成状況モーダル：絞り込みは丸アイコンボタン（右下固定） */
+.roster-modal-filter-fab {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 6;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink, #fff);
+  font-size: 19px;
+  box-shadow: var(--shadow-soft);
+}
+
+.roster-modal-filter-fab:hover {
+  background: var(--accent-deep);
+}
+
+.roster-modal-filter-panel {
+  position: relative;
+  z-index: 5;
+  margin-bottom: 8px;
+}
+
+/* 主人公の元素（編成状況モーダル） */
+.roster-modal-traveler {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px 2px 9px;
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.roster-modal-traveler-label {
+  color: var(--muted);
+}
+
+.roster-modal-traveler-select {
+  width: auto;
+  min-height: 26px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ---- モーダル：キャラ一覧ページ ---- */
+
+.char-browser {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 14px;
+  align-items: start;
+}
+
+.char-browser-head {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.char-browser-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.char-browser-grid.muted {
+  opacity: .62;
+}
+
+.char-browser-section-label {
+  margin: 14px 0 6px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.char-browser-section-label.hidden {
+  display: none;
+}
+
+.cb-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 4px 6px;
+  min-height: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--elem-soft, var(--bg));
+  text-align: center;
+}
+
+.cb-tile.selected {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.cb-tile-portrait-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.cb-tile-portrait {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.cb-tile-con {
+  position: absolute;
+  bottom: -3px;
+  right: -4px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.cb-tile-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.cb-tile-lv {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.char-browser-detail {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.cb-detail-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cb-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cb-detail-portrait {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+}
+
+.cb-detail-name {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.cb-detail-elem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cb-detail-row {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cb-detail-row-label {
+  color: var(--muted);
+}
+
+.cb-con-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cb-con-chip {
+  min-height: 26px;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cb-con-chip.active {
+  background: var(--gold);
+  color: #fff;
+}
+
+.cb-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+@media (max-width: 860px) {
+  .char-browser {
+    grid-template-columns: 1fr;
+  }
+
+  .char-browser-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .char-browser-detail {
+    position: static;
+  }
+
+  .progress-roster {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   計画モードにも同じ整理を適用（線を減らし、面と余白で区切る）
+   ========================================================= */
+
+.layout {
+  background: var(--bg);
+}
+
+.summary-strip,
+.character-list-panel,
+.roster-settings-panel,
+.phase-overview-panel,
+.plan-status,
+.stage-card {
+  border: 0;
+  box-shadow: 0 1px 2px rgba(40, 20, 45, .05);
+}
+
+/* 見出しと本文の強弱 */
+.plan-status h2 {
+  font-size: 17px;
+}
+
+/* 空き枠の点線をやめて面で表現 */
+.stage-card .slot {
+  border: 0;
+  background: var(--muted-surface);
+  color: var(--muted);
+}
+
+.stage-card .slot.filled {
+  background: var(--elem-soft, var(--paper));
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--elem, var(--line-strong));
+}
+
+.stage-card .slot.armed {
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.stage-card .slot.invalid {
+  background: var(--warn-soft);
+  box-shadow: inset 0 0 0 1.5px var(--warn);
+}
+
+/* 敵行の区切り線を薄く */
+.stage-card .enemy-row {
+  border-bottom: 0;
+  padding-bottom: 8px;
+}
+
+/* キャラタイルの枠線をやめ、元素は背景色で示す */
+.tile-select {
+  border: 0;
+  background: var(--elem-soft, var(--paper));
+}
+
+.tile.selected .tile-select {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* アルカナ・サマリーのカード */
+.arcana-control {
+  box-shadow: 0 1px 2px rgba(40, 20, 45, .05);
+}
+
+/* 公演詳細の行 */
+.phase-overview-row {
+  border: 0;
+}
+
+/* ステッパーの丸ボタンを軽く */
+.stage-card .stepper-btn {
+  border: 0;
+  background: var(--bg);
+  color: var(--accent-deep);
+}
+
+.stage-card .stepper-btn:hover {
+  background: var(--soft);
+}
+
+/* 元素アイコンは白い円の上に置いて視認性を確保 */
+.comp-pill .comp-icon,
+.roster-modal-summary-pill .comp-icon,
+.phase-overview-compat .comp-icon {
+  background: var(--icon-surface);
+  border-radius: 50%;
+  padding: 1px;
+  box-shadow: 0 0 0 1px rgba(40, 20, 45, .12);
+}
+
+/* 詳細度を上げて確実に余白を確保（.progress-cell-buff .stage-controls を上書き） */
+.progress-cell-buff .progress-buff-row {
+  margin-bottom: 18px;
+}
+
+/* =========================================================
+   進行モード レイアウト調整（配置＋相性／見通しboxの統合／右サイド）
+   ========================================================= */
+
+:root {
+  --prog-tile: 92px;   /* 配置枠・出演可能キャラ・選択ボタン共通のタイル幅 */
+  --prog-tile-h: 90px;
+}
+
+/* --- 配置枠は固定幅、右の余白に相性を置く --- */
+
+.progress-slots-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.progress-slot-grid {
+  grid-template-columns: repeat(4, var(--prog-tile));
+  flex: none;
+}
+
+.progress-slot-grid .slot {
+  min-height: var(--prog-tile-h);
+}
+
+.progress-cell-slots .progress-affinity {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  align-content: start;
+  gap: 7px;
+}
+
+/* 相性はもう少し目立たせる */
+.progress-cell-slots .affinity-row {
+  gap: 5px;
+}
+
+.progress-cell-slots .affinity-label {
+  width: 100%;
+  font-size: 11.5px;
+  padding: 3px 9px;
+}
+
+.progress-cell-slots .affinity-chip {
+  font-size: 13px;
+  font-weight: 900;
+  padding: 5px 11px 5px 5px;
+}
+
+.progress-cell-slots .affinity-chip .comp-icon,
+.progress-cell-slots .affinity-chip-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* --- 「選択」ボタンは配置枠と同じサイズ --- */
+
+.join-add {
+  width: var(--prog-tile);
+  min-height: var(--prog-tile-h);
+  padding: 6px 4px;
+  font-size: 12px;
+}
+
+.join-row {
+  align-items: flex-start;
+}
+
+/* --- 加入ピッカー：待機キャスト未選択は薄く --- */
+
+.slot-picker-item.off-roster {
+  opacity: .38;
+}
+
+.slot-picker-item.off-roster:hover {
+  opacity: .72;
+}
+
+/* --- 次の幕プレビュー：地味に・省スペースに --- */
+
+.progress-cell-outlook .progress-next-body {
+  gap: 6px;
+  padding: 8px 9px;
+  margin-bottom: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--muted-surface);
+}
+
+.next-compact,
+.next-compact-wanted {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.next-compact-label,
+.next-compact-thumb {
+  flex: none;
+  min-width: 22px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.next-compact-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+
+.next-compact-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.next-compact-chip .comp-icon {
+  width: 18px;
+  height: 18px;
+  background: var(--icon-surface);
+  border-radius: 50%;
+  padding: 1px;
+  box-shadow: 0 0 0 1px rgba(40, 20, 45, .12);
+}
+
+.next-compact-portrait {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.next-compact-portrait.exhausted {
+  opacity: .38;
+}
+
+.next-compact-empty {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* --- 右サイドバー：レールの下にアルカナ挿入位置を常時表示 --- */
+
+.progress-side {
+  position: sticky;
+  top: 76px;
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  max-height: calc(100vh - 170px);
+  overflow: auto;
+  min-width: 0;
+}
+
+.progress-rail {
+  position: static;
+  max-height: none;
+  overflow: visible;
+}
+
+.progress-cell-arcana .arcana-controls {
+  display: grid;
+  gap: 6px;
+}
+
+.progress-cell-arcana .arcana-control {
+  height: auto;
+  padding: 6px 9px;
+  box-shadow: none;
+  background: var(--bg);
+}
+
+.progress-cell-arcana .arcana-control select {
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 860px) {
+  .progress-slots-row {
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .progress-slot-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .progress-cell-slots .progress-affinity {
+    width: 100%;
+  }
+
+  .progress-side {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    display: contents;
+  }
+
+  .progress-cell-arcana {
+    order: 8;
+  }
+}
+
+/* 配置枠・出演可能キャラ・「選択」ボタンを同じタイルサイズに揃える */
+:root {
+  --prog-tile: 92px;
+  --prog-tile-h: 112px;
+}
+
+.progress-roster {
+  grid-template-columns: repeat(auto-fill, var(--prog-tile));
+  justify-content: space-between;
+}
+
+.prog-char,
+.progress-slot-grid .slot,
+.join-add {
+  width: var(--prog-tile);
+  min-height: var(--prog-tile-h);
+}
+
+.progress-slot-grid .slot {
+  justify-content: center;
+}
+
+/* 相性は縦並びの細い列でも読めるように */
+.progress-cell-slots .progress-affinity {
+  gap: 5px;
+}
+
+.progress-cell-slots .affinity-row {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.progress-cell-slots .affinity-chip {
+  font-size: 12.5px;
+  padding: 4px 10px 4px 4px;
+}
+
+@media (max-width: 860px) {
+  .progress-roster {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .prog-char,
+  .progress-slot-grid .slot {
+    width: auto;
+  }
+
+  .progress-cell-slots .affinity-row {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* =========================================================
+   純白アイコン（月兆・魔導）だけの対応
+   白い円の上だと完全に消えてしまうため、濃色の円に置いて形を見せる
+   （他のアイコンは白い円のままで問題なく見えている）
+   ========================================================= */
+
+/* 純白アイコンは背景を反転（濃色）にして形が見えるようにする */
+img[src*="月兆"],
+img[src*="魔導"] {
+  background: #2c1830 !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .30) !important;
+  border-radius: 50%;
+  padding: 1px;
+  filter: none;
+}
+
+:root[data-theme="dark"] img[src*="月兆"],
+:root[data-theme="dark"] img[src*="魔導"] {
+  background: #100c18 !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .38) !important;
+}
+
+/* =========================================================
+   細部の調整（敵の切替アイコン／配置枠／絞り込み／星章／アルカナ）
+   ========================================================= */
+
+/* --- 敵の選び直しアイコン（文字色に合わせるため mask で描画） --- */
+
+.enemy-choice-swap {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask: url("./images/icon/recycle_hoso.png") no-repeat center / contain;
+  mask: url("./images/icon/recycle_hoso.png") no-repeat center / contain;
+}
+
+.enemy-choice-row {
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.enemy-choice-row:hover {
+  color: var(--accent-deep);
+}
+
+/* --- 配置枠：×は背景なしで小さく角へ、元素バッジの丸枠は外す --- */
+
+.progress-slot-grid .clear-slot {
+  top: 1px;
+  right: 1px;
+  width: 16px;
+  min-height: 16px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.progress-slot-grid .clear-slot:hover {
+  color: var(--warn);
+  background: transparent;
+}
+
+/* --- 絞り込みの「すべて」だけ横長に --- */
+
+.chip-row.icon-only .chip[data-value="all"],
+.chip-row.icon-only button[data-value="all"] {
+  width: auto;
+  min-width: 0;
+  padding: 0 12px;
+  border-radius: 999px;
+}
+
+/* --- 絞り込みボタンはモーダルに固定（閉じるボタンと同じ基準） --- */
+
+.roster-modal-filter-fab {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 7;
+}
+
+.roster-modal-filter-fab.hidden {
+  display: none;
+}
+
+/* --- 星章獲得 --- */
+
+.star-row {
+  align-items: center;
+  gap: 8px;
+}
+
+.star-row .join-row-label {
+  width: auto;
+}
+
+.star-award-btn {
+  width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+}
+
+.star-award-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  filter: grayscale(1) brightness(.55);
+  opacity: .55;
+  transition: filter .15s ease, opacity .15s ease;
+}
+
+.star-award-btn.on .star-award-icon {
+  filter: none;
+  opacity: 1;
+}
+
+.star-award-btn.on {
+  background: rgba(199, 154, 58, .18);
+}
+
+.rail-star {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  margin-left: 3px;
+  vertical-align: -2px;
+}
+
+/* --- この先の見通し：選択制の幕は候補を等間隔で並べる --- */
+
+.remaining-chips.multi {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.remaining-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 2px 5px;
+  border-radius: 999px;
+}
+
+.remaining-opt.selected {
+  background: var(--soft);
+}
+
+.remaining-opt.dim {
+  opacity: .5;
+}
+
+.remaining-opt-face {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+
+.remaining-row {
+  grid-template-columns: minmax(72px, auto) 1fr auto;
+}
+
+/* --- アルカナ挿入位置：控えめに、切れないように --- */
+
+.progress-side {
+  max-height: none;
+  overflow: visible;
+}
+
+.progress-rail {
+  max-height: calc(100vh - 330px);
+  overflow: auto;
+}
+
+.progress-cell-arcana {
+  background: transparent;
+  box-shadow: none;
+  padding: 4px 0 0;
+}
+
+.progress-cell-arcana .progress-block-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.progress-cell-arcana .arcana-control {
+  background: var(--paper);
+  box-shadow: 0 1px 2px rgba(40, 20, 45, .05);
+}
+
+.progress-cell-arcana .arcana-control-label {
+  font-size: 10px;
+}
+
+.progress-cell-arcana .arcana-control select {
+  font-size: 12px;
+}
+
+/* 「すべて」チップは文字がすっきり収まる横長ピルに */
+.chip.icon-chip.chip-all {
+  width: auto;
+  min-width: 0;
+  padding: 0 12px;
+  border-radius: 999px;
+}
+
+.chip.icon-chip.chip-all .chip-icon-fallback {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* --- 敵の選び直しアイコンをはっきり見せる --- */
+.enemy-choice-swap {
+  width: 24px;
+  height: 24px;
+}
+
+.enemy-choice-row {
+  color: var(--accent-deep);
+}
+
+.enemy-choice-row:hover {
+  color: var(--accent);
+}
+
+/* --- 編成状況（カウントアップ）の元素アイコンは正円の枠を外す --- */
+#progressComposition .comp-icon {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* --- 右の公演一覧：特別挑戦は文字色を変え、ボス／アルカナはアイコンに紫のふち --- */
+
+.rail-item.special .rail-name {
+  color: var(--accent);
+}
+
+.rail-item.highlight .rail-icon {
+  border: 2.5px solid var(--accent-deep);
+  padding: 0;
+}
+
+:root[data-theme="dark"] .rail-item.highlight .rail-icon {
+  border-color: var(--accent);
+}

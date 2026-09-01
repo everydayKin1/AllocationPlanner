@@ -3,6 +3,7 @@ window.GENGEKI_MASTER_DATA = {
   title: "幻想シアター公演配分プランナー",
   rules: {
     maxVitality: 2,
+    cheerGain: 25,        // 観客からの応援1回につき幻戯の花+25
     slotsPerStage: 4,
     inviteCost: 80,
     buffCost: 60,
@@ -171,6 +172,58 @@ window.GENGEKI_MASTER_DATA = {
         { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "8月アルカナ2", icon: "Ⅱ", note: "高難易度。" } },
         { id: "act-10", name: "第10幕", reward: 0, final: true, enemy: { name: "8月最終戦", icon: "冠", note: "12フェーズ目固定。" } }
       ]
+    },
+    {
+      id: "2026-09",
+      label: "2026年09月",
+      elements: ["水", "雷", "草"],
+      travelerElements: ["水", "雷", "草"],
+      openingCast: ["cyno", "kukishinobu", "columbina", "xingqiu", "lauma", "kaveh"],
+      specialCast: ["sandrone", "nicole", "sucrose", "odette"],
+      buffs: [
+        { id: "buffA", name: "開花" },
+        { id: "buffB", name: "激化" },
+        { id: "buffC", name: "感電" }
+      ],
+      icons: [
+        { label: "水", icon: "水" },
+        { label: "雷", icon: "雷" },
+        { label: "草", icon: "草" }
+      ],
+      stages: [
+        { id: "act-1", name: "第1幕", reward: 90, enemyOptions: [
+          { name: "ファデュイ特務隊×6", icon: "特務隊", image: "./images/enemy/ファデュイ特務隊.webp", note: "（とくになし）" },
+          { name: "アビスの魔術師・水×6、氷ヒルチャール×1", icon: "アビス", image: "./images/enemy/ヒルチャールレンジャー水.webp", note: "草元素有利", element: ["草"] }
+        ] },
+        { id: "act-2", name: "第2幕", reward: 90, enemyOptions: [
+          { name: "マシナリー×5、×1", icon: "マシナリー", image: "./images/enemy/建造特化型マシナリー.webp", note: "" },
+          { name: "ライノ竜×3、豊穣竜戦士×2", icon: "ライノ竜", image: "./images/enemy/ライノ竜.webp", note: "" },
+          { name: "精鋭・クク竜×3、大霊の化身・炎×1", icon: "クク竜", image: "./images/enemy/クク竜.webp", note: "ライフキーパー", tags: ["ライフキーパー"] }
+        ] },
+        { id: "act-3", name: "第3幕（ボス）", reward: 125, enemy: { name: "マッシュラプトル", image: "./images/enemy/マッシュラプトル.webp", note: "雷アタッカー推奨", element: ["雷"], tags: ["アタッカー"], matchGroups: [["雷"], ["アタッカー"]] } },
+        { id: "act-4", name: "第4幕", reward: 90, enemyOptions: [
+          { name: "遺跡守衛、水スライム", icon: "遺跡守衛", image: "./images/enemy/遺跡守衛くん.webp", note: "雷、草有利", element: ["雷", "草"] },
+          { name: "溶岩の像・流燃体、炎スライム", icon: "溶岩の像", image: "./images/enemy/輝ける溶岩の龍像.webp", note: "" },
+          { name: "重圧ディフェンス", icon: "重圧", note: "" }
+        ] },
+        { id: "act-5", name: "第5幕", reward: 90, enemyOptions: [
+          { name: "遺跡機兵×9", icon: "遺跡機兵", image: "./images/enemy/遺跡機兵-ヘビ.webp", note: "設置系不利" },
+          { name: "獣域ハウンド×14", icon: "獣域", image: "./images/enemy/獣域.webp", note: "ヒーラー", tags: ["ライフキーパー"] }
+        ] },
+        { id: "act-6", name: "第6幕（ボス）", reward: 125, enemy: { name: "鉄甲熔炎帝王", image: "./images/enemy/鉄甲熔炎帝王.webp", note: "水付着推奨", element: ["水"] } },
+        { id: "act-7", name: "第7幕", reward: 90, enemyOptions: [
+          { name: "マッドウォーリアー", icon: "マッド", image: "./images/enemy/ワイルドハント・マッドウォーリアー .webp", note: "月兆（満照）", tags: ["月兆"] },
+          { name: "ファデュイ・烈風の従者×1、ファデュイ・氷霜の従者×1", icon: "従者", image: "./images/enemy/ファデュイのお姉さん.webp", note: "" }
+        ] },
+        { id: "act-8", name: "第8幕（ボス）", reward: 125, enemy: { name: "ピピルパンアイドル", image: "./images/enemy/ピピルパンアイドル.webp", note: "感電ギミック持ち", element: ["水", "雷"] } },
+        { id: "act-9", name: "第9幕", reward: 90, enemyOptions: [
+          { name: "アビスの魔術師・水×6", icon: "アビス水", image: "./images/enemy/水スラ.webp", note: "草元素有利", element: ["草"] },
+          { name: "アビスの魔術師・炎×6", icon: "アビス炎", image: "./images/enemy/アビス炎.webp", note: "水元素有利", element: ["水"] }
+        ] },
+        { id: "arcana-1", name: "アルカナ挑戦1", reward: 90, special: true, allowedFromAfter: "第3幕", enemy: { name: "シャドウハスク", image: "./images/enemy/シャドウハスク.webp", note: "集団戦・要ヒーラー", tags: ["ライフキーパー"] } },
+        { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "シネアス", image: "./images/enemy/シネアス.webp", note: "要草元素", element: ["草"] } },
+        { id: "act-10", name: "第10幕（ボス）", reward: 0, final: true, enemy: { name: "集光の幻月蝶", image: "./images/enemy/集光の幻月蝶.webp", note: "ヒーラー必須", tags: ["ライフキーパー"] } }
+      ]
     }
   ],
   characters: [
@@ -294,6 +347,8 @@ window.GENGEKI_MASTER_DATA = {
     { id: "nahida", name: "ナヒーダ", element: "草", level: 90, image: "./images/character/Nahida_icon.webp", tags: { positions: ["オフフィールド"], roles: ["アタッカー", "サポーター"], weapon: "法器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "tighnari", name: "ティナリ", element: "草", level: 90, image: "./images/character/Tighnari_icon.webp", tags: { positions: ["オンフィールド"], roles: ["アタッカー"], weapon: "弓", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "kirara", name: "綺良々", element: "草", level: 90, image: "./images/character/Kirara_icon.webp", tags: { positions: ["オフフィールド"], roles: ["ライフキーパー"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
+    { id: "odette", name: "オデット", element: "氷", level: 90, image: "./images/character/Odette_icon.webp", tags: { positions: ["オフフィールド"], roles: ["アタッカー", "サポーター"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
+    { id: "alyosha", name: "アリョーシャ", element: "雷", level: 90, image: "./images/character/Alyosha_icon.webp", tags: { positions: ["オフフィールド"], roles: ["サポーター", "ライフキーパー"], weapon: "長柄武器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "kaveh", name: "カーヴェ", element: "草", level: 90, image: "./images/character/Kaveh_icon.webp", tags: { positions: ["オンフィールド"], roles: ["アタッカー"], weapon: "両手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "yaoyao", name: "ヨォーヨ", element: "草", level: 90, image: "./images/character/Yaoyao_icon.webp", tags: { positions: ["オフフィールド"], roles: ["ライフキーパー"], weapon: "長柄武器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "collei", name: "コレイ", element: "草", level: 90, image: "./images/character/Collei_icon.webp", tags: { positions: ["オフフィールド"], roles: ["アタッカー"], weapon: "弓", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } }

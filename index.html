@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Antique&display=swap" rel="stylesheet">
   <link rel="icon" id="faviconLink" href="./images/default-theater-icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=4">
+  <link rel="stylesheet" href="./styles.css?v=25">
 </head>
 <body>
   <div id="overlay" class="overlay"></div>
@@ -19,6 +19,7 @@
     </div>
     <div id="monthSwitcher" class="month-switcher" aria-label="月切り替え"></div>
     <div class="header-actions">
+      <button id="modeToggle" type="button" class="mode-toggle">進行モードへ</button>
       <button id="menuButton" type="button" class="menu-button" aria-label="キャラ一覧を開く">☰</button>
       <button id="howToButton" type="button" class="howto-button" aria-label="使い方">？</button>
     </div>
@@ -126,6 +127,88 @@
     </section>
   </main>
 
+  <main id="progressLayout" class="progress-layout hidden">
+    <div class="progress-main">
+      <nav id="progressRailMobile" class="progress-rail-mobile" aria-label="幕の一覧"></nav>
+
+      <!-- 1段目：幕タイトル ｜ 敵の情報 -->
+      <section class="progress-block progress-cell-stage" aria-label="現在の幕">
+        <div class="progress-stage-head">
+          <div class="progress-stage-title">
+            <span id="progressStageName" class="progress-stage-name"></span>
+            <span id="progressStagePhase" class="progress-stage-phase"></span>
+          </div>
+          <div id="progressStageMeta" class="stage-meta"></div>
+        </div>
+      </section>
+
+      <section class="progress-block progress-cell-enemy" aria-label="敵の情報">
+        <div class="enemy-row">
+          <div id="progressEnemyBox" class="enemy-box"></div>
+          <div id="progressEnemyChoiceRow" class="enemy-choice-row"></div>
+          <select id="progressEnemyChoiceOverlay" class="enemy-choice-overlay hidden" aria-label="敵を選択"></select>
+        </div>
+      </section>
+
+      <!-- 左列：シャイニングブレス → 出演可能キャラ -->
+      <div class="progress-col progress-col-left">
+        <section class="progress-block progress-cell-buff" aria-label="この幕の操作">
+          <h3 class="progress-block-title">シャイニングブレス・キャラ招待</h3>
+          <div id="progressBuffs" class="stage-controls progress-buff-row"></div>
+          <div id="progressControls" class="stage-controls progress-action-row"></div>
+          <div id="progressInviteJoins" class="progress-invite-joins"></div>
+        </section>
+
+        <section class="progress-block progress-cell-roster" aria-label="出演可能キャラ">
+          <h3 class="progress-block-title">
+            出演可能キャラ
+            <span id="progressRosterCount" class="progress-block-count"></span>
+          </h3>
+          <div id="progressRoster" class="progress-roster"></div>
+          <div class="progress-element-summary-row">
+            <div id="progressElementSummary" class="progress-element-summary"></div>
+            <button type="button" id="progressRosterCheck" class="progress-roster-check">🔍 待機キャストの確認</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- 右列：この幕の配置 → 警告 → 次の幕プレビュー -->
+      <div class="progress-col progress-col-right">
+        <section class="progress-block progress-cell-slots" aria-label="この幕の配置">
+          <h3 class="progress-block-title">この幕の配置</h3>
+          <div class="progress-slots-row">
+            <div id="progressSlotGrid" class="slot-grid progress-slot-grid"></div>
+            <div id="progressAffinity" class="progress-affinity"></div>
+          </div>
+          <div id="progressComposition" class="progress-composition"></div>
+          <div id="progressJoinArea" class="progress-join-area"></div>
+        </section>
+
+        <div id="progressSlotWarning" class="progress-slot-warning hidden"></div>
+
+        <section id="progressNextBlock" class="progress-block progress-cell-outlook" aria-label="この先の見通し">
+          <h3 class="progress-block-title">この先の見通し</h3>
+          <div id="progressNextBody" class="progress-next-body"></div>
+          <div id="progressRemaining" class="progress-remaining"></div>
+        </section>
+      </div>
+    </div>
+
+    <aside class="progress-side">
+      <div id="progressRail" class="progress-rail" aria-label="12幕の一覧"></div>
+      <section class="progress-block progress-cell-arcana" aria-label="アルカナ挿入位置">
+        <h3 class="progress-block-title">アルカナ挿入位置</h3>
+        <div id="progressArcanaControls" class="arcana-controls"></div>
+      </section>
+    </aside>
+  </main>
+
+  <nav id="progressNav" class="progress-nav hidden" aria-label="幕の移動">
+    <button type="button" id="progressPrev" class="progress-nav-btn">◀ 前の幕</button>
+    <span id="progressNavLabel" class="progress-nav-label"></span>
+    <button type="button" id="progressNext" class="progress-nav-btn">次の幕 ▶</button>
+  </nav>
+
   <div id="characterPanelOverlay" class="modal-overlay char-panel-overlay hidden">
     <aside class="char-panel" aria-label="キャラ詳細">
       <div class="char-panel-header">
@@ -179,19 +262,21 @@
     <div class="menu-modal" role="dialog" aria-modal="true" aria-label="メニュー">
       <nav class="menu-modal-nav" aria-label="メニュー切り替え">
         <button type="button" id="menuTabRoster" class="menu-modal-tab">編成状況</button>
+        <button type="button" id="menuTabCharacters" class="menu-modal-tab">キャラ一覧</button>
+        <button type="button" id="menuTabSettings" class="menu-modal-tab">設定</button>
         <button type="button" id="menuTabHowTo" class="menu-modal-tab">使い方</button>
       </nav>
       <div class="menu-modal-content">
         <button id="menuModalClose" type="button" class="modal-close menu-modal-close" aria-label="閉じる">×</button>
+        <button id="rosterModalFilterToggle" type="button" class="roster-modal-filter-fab" aria-label="絞り込み">
+          <span aria-hidden="true">⚙</span><span id="rosterModalFilterIcon" class="visually-hidden">絞り込み</span>
+        </button>
 
         <section id="menuPanelRoster" class="menu-panel">
           <div class="roster-modal-sticky">
             <div id="rosterModalStatus" class="roster-modal-status"></div>
             <div id="rosterModalSummary" class="roster-modal-summary"></div>
           </div>
-          <button id="rosterModalFilterToggle" type="button" class="filter-toggle roster-modal-filter-toggle">
-            <span>絞り込み</span><span id="rosterModalFilterIcon" class="filter-toggle-icon">表示 ▾</span>
-          </button>
           <div id="rosterModalFilterPanel" class="roster-modal-filter-panel hidden">
             <div class="filter-panel-head">
               <span class="filter-panel-head-label">元素・タグ</span>
@@ -201,6 +286,25 @@
             <div id="rosterModalTagFilters" class="chip-row icon-only" aria-label="タグで絞り込み"></div>
           </div>
           <div id="rosterModalBody" class="roster-modal-body"></div>
+        </section>
+
+        <section id="menuPanelCharacters" class="menu-panel hidden">
+          <div class="char-browser">
+            <div class="char-browser-list">
+              <div class="char-browser-head">
+                <div id="charBrowserElementFilters" class="chip-row icon-only" aria-label="元素で絞り込み"></div>
+                <input id="charBrowserSearch" type="search" placeholder="名前で検索">
+              </div>
+              <div id="charBrowserOwned" class="char-browser-grid" aria-label="所持キャラ"></div>
+              <p class="char-browser-section-label">未所持</p>
+              <div id="charBrowserUnowned" class="char-browser-grid muted" aria-label="未所持キャラ"></div>
+            </div>
+            <aside id="charBrowserDetail" class="char-browser-detail" aria-label="キャラ詳細"></aside>
+          </div>
+        </section>
+
+        <section id="menuPanelSettings" class="menu-panel hidden">
+          <div id="menuSettingsHost" class="menu-settings-host"></div>
         </section>
 
         <section id="menuPanelHowTo" class="menu-panel hidden">
@@ -259,6 +363,10 @@
   </div>
 
   <nav id="mobileTabBar" class="mobile-tab-bar" aria-label="クイックメニュー">
+    <button type="button" id="tabBarProgress" class="tab-bar-item">
+      <svg class="tab-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span>進行</span>
+    </button>
     <button type="button" id="tabBarRoster" class="tab-bar-item">
       <svg class="tab-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>キャスト</span>
@@ -322,7 +430,7 @@
     </article>
   </template>
 
-  <script src="./master-data.js?v=4"></script>
-  <script src="./app.js?v=4"></script>
+  <script src="./master-data.js?v=25"></script>
+  <script src="./app.js?v=25"></script>
 </body>
 </html>
