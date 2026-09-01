@@ -18,6 +18,9 @@
   var rosterModalElement = "all";
   var rosterModalTags = new Set();
   var lastStateBeforeReset = null;
+  var lastSavedPayload = null;   // 直前に書き込んだ内容（無駄な上書きを防ぐ）
+  var applyingRemoteState = false; // 他タブの変更を取り込んでいる最中は書き戻さない
+  var saveFailedNotified = false;
   // 進行モード用。appMode は "plan"（計画）か "progress"（進行）。
   var appMode = "plan";
   var progressNextWarnedStageId = null; // 未配置警告を1度出した幕。2回目の▶で進む。
@@ -287,7 +290,54 @@
   }
 
   function saveState() {
-    localStorage.setItem(storageKey, JSON.stringify(state));
+    // 他タブの状態を取り込んだ直後は書き戻さない（ピンポン更新の防止）
+    if (applyingRemoteState) return;
+    var payload;
+    try {
+      payload = JSON.stringify(state);
+    } catch (error) {
+      return;
+    }
+    // 中身が変わっていなければ書かない（他タブとの無用な上書き合戦を減らす）
+    if (payload === lastSavedPayload) return;
+    try {
+      localStorage.setItem(storageKey, payload);
+      lastSavedPayload = payload;
+      saveFailedNotified = false;
+    } catch (error) {
+      // プライベートモードや保存制限で失敗しても、アプリは動き続ける
+      if (!saveFailedNotified) {
+        saveFailedNotified = true;
+        toast("保存できませんでした。ブラウザの設定で保存が制限されている可能性があります。");
+      }
+    }
+  }
+
+  // 他のタブが保存したら、その内容を取り込んで表示を合わせる
+  function adoptRemoteState(rawValue) {
+    var incoming;
+    try {
+      incoming = JSON.parse(rawValue);
+    } catch (error) {
+      return;
+    }
+    if (!incoming || typeof incoming !== "object") return;
+    state = Object.assign(createDefaultState(), incoming);
+    state.settings = Object.assign({ showOwnership: true }, incoming.settings || {});
+    lastSavedPayload = rawValue;
+    selectedCharacterId = null;
+    activeSlot = null;
+    closeSlotPicker();
+    closeJoinPicker();
+    applyingRemoteState = true;
+    try {
+      ensureStateShape();
+      applyTheme();
+      render();
+    } finally {
+      applyingRemoteState = false;
+    }
+    toast("別のタブでの変更を反映しました");
   }
 
   /* ---------- month / stages ---------- */
@@ -747,6 +797,13 @@
       renderRosterTabs();
     });
     dom.rosterTabSettings.addEventListener("click", function () { openMenuModal("settings"); });
+
+    // 同じページを複数タブで開いても、互いの変更を上書きし合わないようにする
+    window.addEventListener("storage", function (event) {
+      if (event.key !== storageKey || event.newValue == null) return;
+      if (event.newValue === lastSavedPayload) return;
+      adoptRemoteState(event.newValue);
+    });
 
     if (dom.modeToggle) {
       dom.modeToggle.addEventListener("click", function () {

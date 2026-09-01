@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Antique&display=swap" rel="stylesheet">
   <link rel="icon" id="faviconLink" href="./images/default-theater-icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=26">
+  <link rel="stylesheet" href="./styles.css?v=27">
 </head>
 <body>
   <div id="overlay" class="overlay"></div>
@@ -94,7 +94,8 @@
           <button id="resetActionsButton" type="button" class="danger reset-scope-btn" data-label="シャイニングブレス・キャラ招待のみ初期化">シャイニングブレス・キャラ招待のみ初期化</button>
           <button id="resetBothButton" type="button" class="danger reset-scope-btn" data-label="両方とも初期化">両方とも初期化</button>
           <button id="undoResetButton" type="button" class="hidden">元に戻す</button>
-          <p class="settings-hint">※ 所持状況・レベル・待機キャスト・個人メモ・他の月のデータは消えません。</p>
+          <p class="settings-hint">※ 所持状況・レベル・待機キャスト・個人メモ・他の月のデータは消えません。<br>
+          ※ 初期化の取り消し用データはメモリ上だけなので、ページを再読み込みすると「元に戻す」はできなくなります。</p>
         </div>
       </section>
     </aside>
@@ -354,6 +355,7 @@
               ・<strong>シャイニングブレス・キャラ招待のみ初期化</strong>：バフと招待の取得数だけをリセット。<br>
               ・<strong>両方とも初期化</strong>：上の2つをまとめて。<br>
               各ボタンは1回目で「実行」表示に変わり、もう一度押すと確定します（直後なら「元に戻す」で復元可能）。<br>
+              <span class="howto-alert">※ 初期化の取り消し用データはメモリ上だけなので、ページを再読み込みすると「元に戻す」はできなくなります。</span><br>
               <span class="howto-alert">所持状況・レベル・待機キャスト・個人メモ・他の月のデータは消えません。</span>
             </p>
           </div>
@@ -430,7 +432,7 @@
     </article>
   </template>
 
-  <script src="./master-data.js?v=26"></script>
-  <script src="./app.js?v=26"></script>
+  <script src="./master-data.js?v=27"></script>
+  <script src="./app.js?v=27"></script>
 </body>
 </html>
