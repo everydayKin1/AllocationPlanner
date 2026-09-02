@@ -168,6 +168,12 @@ def build_characters(pages):
         if p_check(pg, "IsTraveler"):
             entry["isTraveler"] = True
             entry["exclusiveGroup"] = "traveler"
+        rarity = p_select(pg, "Rarity")
+        if rarity:
+            entry["rarity"] = int(rarity)
+        release = p_number(pg, "ReleaseOrder")
+        if release is not None:
+            entry["releaseOrder"] = int(release)
         entry["tags"] = {
             "positions": p_multi(pg, "Positions"),
             "roles": p_multi(pg, "Roles"),
@@ -340,6 +346,51 @@ def sort_characters(chars, source):
     return ordered
 
 
+def existing_release_info(source):
+    """現在の master-data.js から id ごとの rarity / releaseOrder を拾う。"""
+    info = {}
+    try:
+        i = source.index("\n  characters: [")
+        j = source.index("\n  ]", i + 5)
+    except ValueError:
+        return info
+    for line in source[i:j].split("\n"):
+        m = re.search(r'\{\s*id:\s*"([^"]+)"', line)
+        if not m:
+            continue
+        rarity = re.search(r'\brarity:\s*(\d+)', line)
+        order = re.search(r'\breleaseOrder:\s*(\d+)', line)
+        info[m.group(1)] = {
+            "rarity": int(rarity.group(1)) if rarity else None,
+            "releaseOrder": int(order.group(1)) if order else None,
+        }
+    return info
+
+
+def apply_release_info(chars, source):
+    """レアリティと実装順を決める。
+
+    Notion に入っていればそれを使い、空なら既存ファイルの値を引き継ぐ。
+    どちらにも無い新キャラは「いちばん新しい」とみなして末尾の番号を振り、
+    レアリティは 5 を仮置きする（Notion で直せる）。
+    """
+    known = existing_release_info(source)
+    used = [c["releaseOrder"] for c in chars if c.get("releaseOrder") is not None]
+    used += [v["releaseOrder"] for v in known.values() if v["releaseOrder"] is not None]
+    nxt = (max(used) + 1) if used else 1
+    for c in chars:
+        prev = known.get(c["id"], {})
+        if c.get("rarity") is None:
+            c["rarity"] = prev.get("rarity") or 5
+        if c.get("releaseOrder") is None:
+            order = prev.get("releaseOrder")
+            if order is None:
+                order = nxt
+                nxt += 1
+            c["releaseOrder"] = order
+    return chars
+
+
 def render_characters(chars):
     lines = []
     for c in chars:
@@ -394,6 +445,7 @@ def splice_block(source, key, new_body):
 
 
 def build_master_js(source, chars, months):
+    chars = apply_release_info(chars, source)
     chars = sort_characters(chars, source)
     out = splice_block(source, "characters", render_characters(chars))
     out = splice_block(out, "months", render_months(months))
@@ -433,6 +485,8 @@ def _fake_pages_from_master(path):
             "ID": rt(c["id"]),
             "Element": {"select": {"name": c["element"]}},
             "Level": {"number": c.get("level", 90)},
+            "Rarity": {"select": ({"name": str(c["rarity"])} if c.get("rarity") else None)},
+            "ReleaseOrder": {"number": c.get("releaseOrder")},
             "Image": rt(c["image"].split("/")[-1]),
             "IsTraveler": {"checkbox": bool(c.get("isTraveler"))},
             "Positions": {"multi_select": [{"name": x} for x in t.get("positions", [])]},

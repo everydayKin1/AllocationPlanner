@@ -730,11 +730,11 @@
     chip.dataset.value = value;
     chip.title = label;
     chip.setAttribute("aria-label", label);
-    // 「すべて」はアイコンが無いので、切り詰めずに全文を出して横長ピルにする
-    if (value === "all") chip.classList.add("chip-all");
+    // アイコン画像が無いものは切り詰めず、全文を出して横長ピルにする
+    if (!iconPath) chip.classList.add("chip-all");
     chip.innerHTML = iconPath
       ? "<img class=\"chip-icon\" src=\"" + escapeHtml(iconPath) + "\" alt=\"\">"
-      : "<span class=\"chip-icon-fallback\">" + escapeHtml(value === "all" ? label : label.slice(0, 2)) + "</span>";
+      : "<span class=\"chip-icon-fallback\">" + escapeHtml(label) + "</span>";
     chip.addEventListener("click", onClick);
     container.appendChild(chip);
   }
@@ -2844,16 +2844,18 @@
     var owned = [];
     var unowned = [];
     master.characters.forEach(function (character) {
-      if (character.isTraveler && !isTravelerActive(character)) return;
+      // 主人公は全元素ぶんを並べる（今月使えるのは1体でも、レベルや凸は個別に記録するため）
       if (!matchesCharBrowser(character)) return;
       if (character.isTraveler || isOwned(character.id)) owned.push(character);
       else unowned.push(character);
     });
-    var order = master.elements || [];
+    // 並び順：①レベルの高い順 ②レアリティ（5★が先） ③実装順（新しいキャラほど上）
     function sorter(a, b) {
-      var ea = order.indexOf(a.element), eb = order.indexOf(b.element);
-      if (ea !== eb) return ea - eb;
-      return a.name.localeCompare(b.name, "ja");
+      var lv = getLevel(b) - getLevel(a);
+      if (lv !== 0) return lv;
+      var rare = (b.rarity || 5) - (a.rarity || 5);
+      if (rare !== 0) return rare;
+      return (b.releaseOrder || 0) - (a.releaseOrder || 0);
     }
     owned.sort(sorter);
     unowned.sort(sorter);

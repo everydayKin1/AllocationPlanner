@@ -5508,3 +5508,11 @@ img[src*="魔導"] {
   outline: 2px solid var(--accent-deep);
   outline-offset: 2px;
 }
+
+/* 所持チェックボックスと文言を1行に揃える
+   （.cb-detail-row の grid が .toggle-row の flex を打ち消していたため） */
+.toggle-row.cb-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
