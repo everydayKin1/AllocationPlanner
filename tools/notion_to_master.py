@@ -305,21 +305,39 @@ def existing_character_order(source):
     return re.findall(r'\{\s*id:\s*"([^"]+)"', source[i:j])
 
 
+ELEMENT_ORDER = ["炎", "水", "氷", "雷", "風", "岩", "草"]
+
+
 def sort_characters(chars, source):
     """並び順は既存ファイルを踏襲する。
-    Notion の取得順は実行ごとに変わりうるため、そのまま出すと
-    差分が毎回発生し、アプリ側の表示順（元素ごとのまとまり）も崩れてしまう。
-    新しく増えたキャラは、元素順→名前順で末尾に足す。"""
-    order = {cid: n for n, cid in enumerate(existing_character_order(source))}
-    elements = ["炎", "水", "氷", "雷", "風", "岩", "草"]
 
-    def key(c):
-        if c["id"] in order:
-            return (0, order[c["id"]], "")
-        el = c.get("element", "")
-        return (1, elements.index(el) if el in elements else len(elements), c.get("name", ""))
+    Notion の取得順は実行ごとに変わりうるため、そのまま出すと差分が毎回発生し、
+    アプリ側の表示順（元素ごとのまとまり）も崩れてしまう。
+    新しく増えたキャラは末尾ではなく「仲間の隣」に入れる。
+    主人公なら主人公の並びの最後、それ以外なら同じ元素の最後に続ける。
+    """
+    order = existing_character_order(source)
+    by_id = {c["id"]: c for c in chars}
 
-    return sorted(chars, key=key)
+    def group(c):
+        return "traveler" if c.get("isTraveler") else c.get("element", "")
+
+    # 既存キャラを元の順番どおりに並べる
+    ordered = [by_id[cid] for cid in order if cid in by_id]
+
+    # 新しいキャラは元素順→名前順で処理し、同じグループの最後尾に差し込む
+    newcomers = [c for c in chars if c["id"] not in set(order)]
+    newcomers.sort(key=lambda c: (ELEMENT_ORDER.index(c.get("element", ""))
+                                  if c.get("element") in ELEMENT_ORDER else len(ELEMENT_ORDER),
+                                  c.get("name", "")))
+    for c in newcomers:
+        g = group(c)
+        last = max((n for n, x in enumerate(ordered) if group(x) == g), default=None)
+        if last is None:
+            ordered.append(c)
+        else:
+            ordered.insert(last + 1, c)
+    return ordered
 
 
 def render_characters(chars):

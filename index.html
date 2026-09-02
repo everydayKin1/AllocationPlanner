@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Antique&display=swap" rel="stylesheet">
   <link rel="icon" id="faviconLink" href="./images/default-theater-icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=29">
+  <link rel="stylesheet" href="./styles.css?v=30">
 </head>
 <body>
   <div id="overlay" class="overlay"></div>
@@ -97,6 +97,42 @@
           <p class="settings-hint">※ 所持状況・レベル・待機キャスト・個人メモ・他の月のデータは消えません。<br>
           ※ 初期化の取り消し用データはメモリ上だけなので、ページを再読み込みすると「元に戻す」はできなくなります。</p>
         </div>
+
+        <details class="howto-toggle storage-toggle">
+          <summary>このアプリが保存しているデータ</summary>
+          <div class="howto-toggle-body">
+            <p>入力した内容は<strong>お使いのブラウザの中だけ</strong>（localStorage）に保存されます。サーバーには送信されないので、他の人に見られることはありません。</p>
+            <p class="storage-group-title">月ごとに保存されるもの</p>
+            <ul class="storage-list">
+              <li>各幕のキャラ配置</li>
+              <li>キャラ招待の回数、シャイニングブレスの取得数、観客からの応援の回数</li>
+              <li>アルカナ挑戦の挿入位置</li>
+              <li>選択制の幕で選んだ敵</li>
+              <li>幕ごとのメモ</li>
+              <li>今月の主人公の元素</li>
+              <li>「今月これを編成に入れる」チェック（待機キャストの選抜）</li>
+              <li>進行モードの現在の幕、加入したキャラの記録、星章の獲得状況</li>
+            </ul>
+            <p class="storage-group-title">キャラごとに保存されるもの（月をまたいで共通）</p>
+            <ul class="storage-list">
+              <li>所持しているかどうか（初期状態はすべて「所持済み」）</li>
+              <li>レベル（初期値90／1〜100で編集可能）</li>
+              <li>凸（命の星座／C0〜C6）</li>
+              <li>聖遺物セット（同じ幕に同じセットが重なると警告バッジが出ます）</li>
+              <li>キャラごとの個人メモ</li>
+              <li>「魔導」バッジを隠す設定</li>
+            </ul>
+            <p class="storage-group-title">アプリ全体の設定</p>
+            <ul class="storage-list">
+              <li>ナイトモード</li>
+              <li>所持チェックボックスを表示するかどうか</li>
+              <li>編成状況を全選択で開始するかどうか</li>
+              <li>最後に開いていた月と画面モード</li>
+            </ul>
+            <p class="storage-note">同じページを複数のタブで開いても大丈夫です。片方で変更すると、もう片方も自動で追いつきます。<br>
+            バックアップを取りたいときは、上の<strong>「書き出し」</strong>でファイルとして保存できます。</p>
+          </div>
+        </details>
       </section>
     </aside>
 
@@ -432,7 +468,7 @@
     </article>
   </template>
 
-  <script src="./master-data.js?v=29"></script>
-  <script src="./app.js?v=29"></script>
+  <script src="./master-data.js?v=30"></script>
+  <script src="./app.js?v=30"></script>
 </body>
 </html>
