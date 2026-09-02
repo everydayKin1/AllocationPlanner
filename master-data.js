@@ -350,6 +350,7 @@ window.GENGEKI_MASTER_DATA = {
     { id: "alyosha", name: "アリョーシャ", element: "雷", level: 90, image: "./images/character/Alyosha_icon.webp", tags: { positions: ["オフフィールド"], roles: ["サポーター", "ライフキーパー"], weapon: "長柄武器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "kaveh", name: "カーヴェ", element: "草", level: 90, image: "./images/character/Kaveh_icon.webp", tags: { positions: ["オンフィールド"], roles: ["アタッカー"], weapon: "両手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "yaoyao", name: "ヨォーヨ", element: "草", level: 90, image: "./images/character/Yaoyao_icon.webp", tags: { positions: ["オフフィールド"], roles: ["ライフキーパー"], weapon: "長柄武器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
-    { id: "collei", name: "コレイ", element: "草", level: 90, image: "./images/character/Collei_icon.webp", tags: { positions: ["オフフィールド"], roles: ["アタッカー"], weapon: "弓", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } }
+    { id: "collei", name: "コレイ", element: "草", level: 90, image: "./images/character/Collei_icon.webp", tags: { positions: ["オフフィールド"], roles: ["アタッカー"], weapon: "弓", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
+    { id: "tr-cryo", name: "主人公/氷", element: "氷", level: 90, image: "./images/character/Traveler_icon.webp", isTraveler: true, exclusiveGroup: "traveler", tags: { positions: ["オンフィールド"], roles: ["アタッカー"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } }
   ]
 };
