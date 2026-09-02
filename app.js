@@ -61,7 +61,7 @@
       progressStage: {},  // { 月id: 現在の幕id }
       starAwards: {},     // { 月id: { 幕id: true } } 星章を獲得した幕
       joined: {},         // { 月id: [{ id, stageId, via: "battle"|"invite" }] }
-      settings: { showOwnership: true, autoRoster: false, darkMode: false, mode: "plan" }
+      settings: { showOwnership: true, autoRoster: false, darkMode: false, mode: "plan", travelerGender: "蛍" }
     };
   }
 
@@ -149,6 +149,7 @@
     charBrowserDetail: document.getElementById("charBrowserDetail"),
     progressInviteJoins: document.getElementById("progressInviteJoins"),
     darkModeToggle: document.getElementById("darkModeToggle"),
+    travelerGenderChoice: document.getElementById("travelerGenderChoice"),
     showOwnershipToggle: document.getElementById("showOwnershipToggle"),
     autoRosterToggle: document.getElementById("autoRosterToggle"),
     searchInput: document.getElementById("searchInput"),
@@ -251,6 +252,15 @@
     if (dom.darkModeToggle) dom.darkModeToggle.checked = isDarkMode();
   }
 
+  function syncTravelerGenderChoice() {
+    if (!dom.travelerGenderChoice) return;
+    var current = state.settings.travelerGender;
+    Array.prototype.forEach.call(
+      dom.travelerGenderChoice.querySelectorAll("input[name=travelerGender]"),
+      function (input) { input.checked = input.value === current; }
+    );
+  }
+
   function applyBrandIcons() {
     var icons = master.icons || {};
     var faviconLink = document.getElementById("faviconLink");
@@ -282,7 +292,9 @@
     try {
       var parsed = JSON.parse(localStorage.getItem(storageKey) || "{}");
       var merged = Object.assign(createDefaultState(), parsed);
-      merged.settings = Object.assign({ showOwnership: true }, parsed.settings || {});
+      // 設定は既定値の上に保存値を重ねる。
+      // 新しい設定項目を足したとき、以前から使っている人の分が欠けないようにするため。
+      merged.settings = Object.assign(createDefaultState().settings, parsed.settings || {});
       return merged;
     } catch (error) {
       return createDefaultState();
@@ -827,6 +839,16 @@
     dom.tabBarHowTo.addEventListener("click", function () { openMenuModal("howto"); });
     dom.tabBarSettings.addEventListener("click", function () { openMenuModal("settings"); });
 
+    if (dom.travelerGenderChoice) {
+      dom.travelerGenderChoice.addEventListener("change", function (event) {
+        var input = event.target;
+        if (!input || input.name !== "travelerGender") return;
+        state.settings.travelerGender = input.value;
+        saveState();
+        render();
+      });
+    }
+
     dom.darkModeToggle.addEventListener("change", function () {
       state.settings.darkMode = dom.darkModeToggle.checked;
       applyTheme();
@@ -979,6 +1001,7 @@
     dom.showOwnershipToggle.checked = showOwnership();
     dom.autoRosterToggle.checked = Boolean(state.settings.autoRoster);
     dom.darkModeToggle.checked = isDarkMode();
+    syncTravelerGenderChoice();
     renderTabBar();
   }
 
@@ -4295,11 +4318,22 @@
     return row;
   }
 
+  // 主人公は元素を問わず、設定で選んだ性別（空／蛍）のアイコンを使う
+  function getPortraitPath(character) {
+    if (character && character.isTraveler) {
+      var choices = (master.icons && master.icons.traveler) || {};
+      var chosen = choices[state.settings.travelerGender];
+      if (chosen) return chosen;
+    }
+    return character ? character.image : "";
+  }
+
   function setPortrait(container, character) {
     container.innerHTML = "";
-    if (character.image) {
+    var portraitPath = getPortraitPath(character);
+    if (portraitPath) {
       var image = document.createElement("img");
-      image.src = character.image;
+      image.src = portraitPath;
       image.alt = "";
       container.appendChild(image);
       return;

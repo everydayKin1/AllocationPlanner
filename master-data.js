@@ -21,6 +21,8 @@ window.GENGEKI_MASTER_DATA = {
     arcanaNum2: "./images/icon/LunarArcanaNum2_icon.webp",
     elements: { "炎": "./images/元素/炎元素.png", "水": "./images/元素/水元素.png", "雷": "./images/元素/雷元素.png", "氷": "./images/元素/氷元素.png", "風": "./images/元素/風元素.png", "岩": "./images/元素/岩元素.png", "草": "./images/元素/草元素.png" },
     positions: { "オンフィールド": "./images/icon/Role_On-Field.webp", "オフフィールド": "./images/icon/Role_Off-Field.webp" },
+    // 主人公のアイコン。設定で「空」「蛍」を選ぶと、元素を問わず主人公全員の顔がこれに変わる
+    traveler: { "空": "./images/character/Aether_icon.webp", "蛍": "./images/character/Lumine_Icon.webp" },
     roles: { "アタッカー": "./images/icon/Role_アタッカー.webp", "サポーター": "./images/icon/Role_サポーター.webp", "ライフキーパー": "./images/icon/Role_ライフキーパー.webp" },
     pneuma: "./images/icon/プネウマ_icon.png",
     ousia: "./images/icon/ウーシア_icon.webp",
@@ -51,7 +53,7 @@ window.GENGEKI_MASTER_DATA = {
   elements: ["炎", "水", "雷", "氷", "風", "岩", "草"],
   tagOptions: {
     positions: ["オンフィールド", "オフフィールド"],
-    roles: ["アタッカー", "サポーター", "ライフキーパー"],
+    roles: ["アタッカー", "サポーター", "ライフキーパー", "ヒーラー", "シールダー", "タンク"],
     weapons: ["片手剣", "両手剣", "法器", "弓", "長柄武器"],
     pneumaOusia: ["プネウマ", "ウーシア"]
   },

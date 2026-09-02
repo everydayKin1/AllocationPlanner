@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Antique&display=swap" rel="stylesheet">
   <link rel="icon" id="faviconLink" href="./images/default-theater-icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=30">
+  <link rel="stylesheet" href="./styles.css?v=31">
 </head>
 <body>
   <div id="overlay" class="overlay"></div>
@@ -81,6 +81,21 @@
           <input id="autoRosterToggle" type="checkbox">
           編成状況で出演可能なキャラを全選択された状態で開始する
         </label>
+        <p class="settings-title">主人公のアイコン</p>
+        <div id="travelerGenderChoice" class="traveler-choice" role="radiogroup" aria-label="主人公のアイコン">
+          <label class="traveler-option">
+            <input type="radio" name="travelerGender" value="空">
+            <span class="traveler-option-face"><img src="./images/character/Aether_icon.webp" alt=""></span>
+            <span class="traveler-option-label">空</span>
+          </label>
+          <label class="traveler-option">
+            <input type="radio" name="travelerGender" value="蛍">
+            <span class="traveler-option-face"><img src="./images/character/Lumine_Icon.webp" alt=""></span>
+            <span class="traveler-option-label">蛍</span>
+          </label>
+        </div>
+        <p class="settings-hint">元素を問わず、主人公すべてのアイコンが変わります。</p>
+
         <div class="settings-actions">
           <button id="exportPlanButton" type="button">書き出し</button>
           <label class="file-button">
@@ -468,7 +483,7 @@
     </article>
   </template>
 
-  <script src="./master-data.js?v=30"></script>
-  <script src="./app.js?v=30"></script>
+  <script src="./master-data.js?v=31"></script>
+  <script src="./app.js?v=31"></script>
 </body>
 </html>
