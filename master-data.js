@@ -193,7 +193,7 @@ window.GENGEKI_MASTER_DATA = {
       stages: [
         { id: "act-1", name: "第1幕", reward: 90, enemyOptions: [
           { name: "ファデュイ特務隊×6", icon: "特務隊", image: "./images/enemy/ファデュイ特務隊.webp", note: "（とくになし）" },
-          { name: "アビスの魔術師・水×6、氷ヒルチャール×1", icon: "アビス", image: "./images/enemy/ヒルチャールレンジャー水.webp", note: "草元素有利", element: ["草"] }
+          { name: "アビスの魔術師・水×6、氷ヒルチャール×1", icon: "アビス", image: "./images/enemy/アビスの魔術師・水.webp", note: "草元素有利", element: ["草"] }
         ] },
         { id: "act-2", name: "第2幕", reward: 90, enemyOptions: [
           { name: "マシナリー×5、×1", icon: "マシナリー", image: "./images/enemy/建造特化型マシナリー.webp" },
@@ -203,7 +203,7 @@ window.GENGEKI_MASTER_DATA = {
         { id: "act-3", name: "第3幕（ボス）", reward: 125, enemy: { name: "マッシュラプトル", image: "./images/enemy/マッシュラプトル.webp", note: "雷アタッカー推奨", element: ["雷"], tags: ["アタッカー"], matchGroups: [["雷"], ["アタッカー"]] } },
         { id: "act-4", name: "第4幕", reward: 90, enemyOptions: [
           { name: "遺跡守衛、水スライム", icon: "遺跡守衛", image: "./images/enemy/遺跡守衛くん.webp", note: "雷、草有利", element: ["雷", "草"] },
-          { name: "溶岩の像・流燃体、炎スライム", icon: "溶岩の像", image: "./images/enemy/輝ける溶岩の龍像.webp" },
+          { name: "溶岩の像・流燃体、炎スライム", icon: "溶岩の像", image: "./images/enemy/溶岩の像・流燃体.webp" },
           { name: "重圧ディフェンス", icon: "重圧" }
         ] },
         { id: "act-5", name: "第5幕", reward: 90, enemyOptions: [
@@ -217,8 +217,8 @@ window.GENGEKI_MASTER_DATA = {
         ] },
         { id: "act-8", name: "第8幕（ボス）", reward: 125, enemy: { name: "ピピルパンアイドル", image: "./images/enemy/ピピルパンアイドル.webp", note: "感電ギミック持ち", element: ["水", "雷"] } },
         { id: "act-9", name: "第9幕", reward: 90, enemyOptions: [
-          { name: "アビスの魔術師・水×6", icon: "アビス水", image: "./images/enemy/水スラ.webp", note: "草元素有利", element: ["草"] },
-          { name: "アビスの魔術師・炎×6", icon: "アビス炎", image: "./images/enemy/アビス炎.webp", note: "水元素有利", element: ["水"] }
+          { name: "アビスの魔術師・水×6", icon: "アビス水", image: "./images/enemy/アビスの魔術師・水.webp", note: "草元素有利", element: ["草"] },
+          { name: "アビスの魔術師・炎×6", icon: "アビス炎", image: "./images/enemy/アビスの魔術師・炎.webp", note: "水元素有利", element: ["水"] }
         ] },
         { id: "arcana-1", name: "アルカナ挑戦1", reward: 90, special: true, allowedFromAfter: "第3幕", enemy: { name: "シャドウハスク", image: "./images/enemy/シャドウハスク.webp", note: "集団戦・要ヒーラー", tags: ["ライフキーパー"] } },
         { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "シネアス", image: "./images/enemy/シネアス.webp", note: "要草元素", element: ["草"] } },
