@@ -226,6 +226,38 @@ window.GENGEKI_MASTER_DATA = {
         { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "シネアス", image: "./images/enemy/シネアス.webp", note: "要草元素", element: ["草"] } },
         { id: "act-10", name: "第10幕（ボス）", reward: 0, final: true, enemy: { name: "集光の幻月蝶", image: "./images/enemy/集光の幻月蝶.webp", note: "ヒーラー必須", tags: ["ライフキーパー", "ヒーラー"] } }
       ]
+    },
+    {
+      id: "2026-10",
+      label: "2026年10月",
+      elements: ["水", "氷", "風"],
+      travelerElements: ["水", "氷", "風"],
+      openingCast: ["neuvillette", "barbara", "citlali", "kaeya", "wanderer", "prune"],
+      specialCast: ["ineffa", "yaemiko", "thoma", "chiori"],
+      buffs: [
+        { id: "buffA", name: "凍結" },
+        { id: "buffB", name: "水拡散" },
+        { id: "buffC", name: "氷拡散" }
+      ],
+      icons: [
+        { label: "水", icon: "水" },
+        { label: "氷", icon: "氷" },
+        { label: "風", icon: "風" }
+      ],
+      stages: [
+        { id: "act-1", name: "第1幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-2", name: "第2幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-3", name: "第3幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-4", name: "第4幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-5", name: "第5幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-6", name: "第6幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-7", name: "第7幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-8", name: "第8幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-9", name: "第9幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "arcana-1", name: "アルカナ挑戦1", reward: 90, special: true, allowedFromAfter: "第3幕", enemy: { name: "", icon: "", note: "" } },
+        { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "", icon: "", note: "" } },
+        { id: "act-10", name: "第10幕", reward: 0, final: true, enemy: { name: "", icon: "", note: "" } }
+      ]
     }
   ],
   characters: [
@@ -270,6 +302,7 @@ window.GENGEKI_MASTER_DATA = {
     { id: "candace", name: "キャンディス", element: "水", level: 90, image: "./images/character/Candace_icon.webp", rarity: 4, releaseOrder: 56, tags: { positions: ["オフフィールド"], roles: ["サポーター"], weapon: "長柄武器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "xingqiu", name: "行秋", element: "水", level: 90, image: "./images/character/Xingqiu_icon.webp", rarity: 4, releaseOrder: 14, tags: { positions: ["オフフィールド"], roles: ["アタッカー", "ライフキーパー"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "barbara", name: "バーバラ", element: "水", level: 90, image: "./images/character/Barbara_icon.webp", rarity: 4, releaseOrder: 6, tags: { positions: ["オフフィールド"], roles: ["ライフキーパー", "ヒーラー"], weapon: "法器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
+    { id: "vodyanitsa", name: "ヴォジャニーツァ", element: "水", level: 90, image: "./images/character/Vodyanitsa_icon.webp", rarity: 5, releaseOrder: 124, tags: { positions: ["オフフィールド"], roles: ["サポーター", "ライフキーパー", "ヒーラー"], weapon: "法器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "chongyun", name: "重雲", element: "氷", level: 90, image: "./images/character/Chongyun_icon.webp", rarity: 4, releaseOrder: 13, tags: { positions: ["オフフィールド"], roles: ["アタッカー", "サポーター"], weapon: "両手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "kamisatoayaka", name: "神里綾華", element: "氷", level: 90, image: "./images/character/Kamisato Ayaka_icon.webp", rarity: 5, releaseOrder: 36, tags: { positions: ["オンフィールド"], roles: ["アタッカー"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "shenhe", name: "申鶴", element: "氷", level: 90, image: "./images/character/Shenhe_icon.webp", rarity: 5, releaseOrder: 46, tags: { positions: ["オフフィールド"], roles: ["サポーター"], weapon: "長柄武器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
@@ -326,6 +359,7 @@ window.GENGEKI_MASTER_DATA = {
     { id: "sayu", name: "早柚", element: "風", level: 90, image: "./images/character/Sayu_icon.webp", rarity: 4, releaseOrder: 37, tags: { positions: ["オフフィールド"], roles: ["ライフキーパー", "ヒーラー"], weapon: "両手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "sucrose", name: "スクロース", element: "風", level: 90, image: "./images/character/Sucrose_icon.webp", rarity: 4, releaseOrder: 11, tags: { positions: ["オフフィールド"], roles: ["サポーター"], weapon: "法器", nightsoul: false, pneumaOusia: "", lunar: false, magic: true } },
     { id: "prune", name: "プルーネ", element: "風", level: 90, image: "./images/character/Prune_icon.webp", rarity: 4, releaseOrder: 117, tags: { positions: ["オフフィールド"], roles: ["サポーター"], weapon: "法器", nightsoul: false, pneumaOusia: "", lunar: false, magic: true } },
+    { id: "vesna", name: "ヴェスナ", element: "風", level: 90, image: "./images/character/Vesna_icon.webp", rarity: 5, releaseOrder: 125, tags: { positions: ["オンフィールド"], roles: ["アタッカー"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false } },
     { id: "linnea", name: "リンネア", element: "岩", level: 90, image: "./images/character/Linnea_icon.webp", rarity: 5, releaseOrder: 116, tags: { positions: ["オフフィールド"], roles: ["アタッカー", "サポーター", "ライフキーパー", "ヒーラー"], weapon: "弓", nightsoul: false, pneumaOusia: "", lunar: true, magic: false } },
     { id: "zibai", name: "兹白", element: "岩", level: 90, image: "./images/character/Zibai_icon.webp", rarity: 5, releaseOrder: 113, tags: { positions: ["オンフィールド"], roles: ["アタッカー"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: true, magic: false } },
     { id: "xilonen", name: "シロネン", element: "岩", level: 90, image: "./images/character/Xilonen_icon.webp", rarity: 4, releaseOrder: 91, tags: { positions: ["オフフィールド"], roles: ["サポーター", "ライフキーパー", "ヒーラー"], weapon: "片手剣", nightsoul: true, pneumaOusia: "", lunar: false, magic: false } },
