@@ -244,13 +244,13 @@ window.GENGEKI_MASTER_DATA = {
       ],
       stages: [
         { id: "act-1", name: "第1幕", reward: 90, enemyOptions: [
-          { name: "獣域ハウンド（雷）", icon: "獣域ハウンド（雷）", image: "./images/enemy/獣域ハウンド（雷）.webp", note: "合成獣の方がおすすめ　炎スライム4体、ハウンド・炎アビス・草ヒルチャール", element: ["水"] },
+          { name: "獣域ハウンド（雷）", icon: "獣域ハウンド（雷）", image: "./images/enemy/獣域ハウンド・雷.webp", note: "合成獣の方がおすすめ　炎スライム4体、ハウンド・炎アビス・草ヒルチャール", element: ["水"] },
           { name: "合成獣・ホーンベア×2", icon: "合成獣・ホーンベア", image: "./images/enemy/合成獣・ホーンベア.webp", note: "[おすすめ]2体で討伐" },
           { name: "1-精鋭" }
         ] },
         { id: "act-2", name: "第2幕", reward: 90, enemyOptions: [
           { name: "小型ブリプリ×3、大型ブリプリ×1・小型ブリプリ×2", icon: "大型瓦礫ブリーチャープリムス", image: "./images/enemy/大型瓦礫ブリーチャープリムス.webp", note: "大型が若干うざったいがプネウマ・ウーシアなどで黙らせられます", tags: ["プネウマ", "ウーシア"] },
-          { name: "ファデュイ・烈風の従者", icon: "ファデュイ・烈風の従者", image: "./images/enemy/ファデュイ・烈風の従者 .webp", note: "3体のファデュイ（開始すぐ右・炎銃にアタックで集敵できる）→風のお姉さん1体" },
+          { name: "ファデュイ・烈風の従者", icon: "ファデュイ・烈風の従者", image: "./images/enemy/ファデュイ・烈風の従者.webp", note: "3体のファデュイ（開始すぐ右・炎銃にアタックで集敵できる）→風のお姉さん1体" },
           { name: "2-精鋭", note: "火力に余裕があれば" }
         ] },
         { id: "act-3", name: "第3幕（ボス）", reward: 125, enemy: { name: "3-ボス", icon: "恒常からくり陣形", image: "./images/enemy/恒常からくり陣形.webp", note: "分裂体は黄色い魔法陣がついてるやつ" } },
@@ -276,9 +276,9 @@ window.GENGEKI_MASTER_DATA = {
           { name: "木の精", image: "./images/enemy/宿老の樹霊.webp" },
           { name: "【精鋭】遺跡ドレイク・遺跡シリーズ", image: "./images/enemy/遺跡ドレイク.webp" }
         ] },
-        { id: "arcana-1", name: "アルカナ挑戦1", reward: 90, special: true, allowedFromAfter: "第3幕", enemy: { name: "獣域ハウンド×17", icon: "獣域ハウンド", image: "./images/enemy/獣域ハウンド.webp", note: "3体ずつ出現します。実質1分30秒（星章獲得目標なら）討伐、ダメージが入るステージなので耐久役も連れてくのが無難", tags: ["ヒーラー"] } },
+        { id: "arcana-1", name: "アルカナ挑戦1", reward: 90, special: true, allowedFromAfter: "第3幕", enemy: { name: "獣域ハウンド×17", icon: "獣域ハウンド", image: "./images/enemy/獣域ハウンド・岩.webp", note: "3体ずつ出現します。実質1分30秒（星章獲得目標なら）討伐、ダメージが入るステージなので耐久役も連れてくのが無難", tags: ["ヒーラー"] } },
         { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "遺跡重機シリーズ×10", icon: "遺跡機械シリーズ", image: "./images/enemy/遺跡重機.webp", note: "時計回りに1体ずつ・1分で10体討伐", tags: ["ライフキーパー"] } },
-        { id: "act-10", name: "第10幕（ボス）", reward: 0, final: true, enemy: { name: "統御デバイス", icon: "統御デバイス", image: "./images/enemy/統御デバイス .webp", note: "要氷元素", element: ["氷"], avoidTags: ["夜魂の加護"] } }
+        { id: "act-10", name: "第10幕（ボス）", reward: 0, final: true, enemy: { name: "統御デバイス", icon: "統御デバイス", image: "./images/enemy/統御デバイス.webp", note: "要氷元素", element: ["氷"], avoidTags: ["夜魂の加護"] } }
       ]
     }
   ],
