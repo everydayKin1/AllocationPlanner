@@ -3483,6 +3483,46 @@
         "魔導秘儀<span class=\"comp-count\">" + magicCount + "</span>";
       container.appendChild(magicPill);
     }
+
+    // この敵に有効な元素反応。必要な2元素が「どちらも1人以上」のときだけ成立する。
+    var reactionPill = buildReactionPill(stage, byElement);
+    if (reactionPill) container.appendChild(reactionPill);
+  }
+
+  function getReactionRequirement(stage) {
+    var enemy = getSelectedEnemy(stage);
+    var name = enemy && enemy.reaction;
+    if (!name) return null;
+    var needs = (master.reactionElements || {})[name];
+    if (!needs || !needs.length) return null;
+    return { name: name, elements: needs };
+  }
+
+  function buildReactionPill(stage, byElement) {
+    var req = getReactionRequirement(stage);
+    if (!req) return null;
+    var missing = req.elements.filter(function (element) { return !byElement[element]; });
+    var ok = missing.length === 0;
+
+    var pill = document.createElement("span");
+    pill.className = "comp-pill reaction" + (ok ? " ok" : " unmet");
+
+    var icon = (master.icons && master.icons.reactions && master.icons.reactions[req.name]) || "";
+    var html = icon ? "<img class=\"comp-icon\" src=\"" + escapeHtml(icon) + "\" alt=\"\">" : "";
+    html += escapeHtml(req.name);
+    // 必要な元素を1つずつ、満たしているかで色分けして並べる
+    req.elements.forEach(function (element) {
+      var path = elementIconPath(element);
+      var met = Boolean(byElement[element]);
+      html += "<span class=\"comp-req" + (met ? " met" : "") + "\">" +
+        (path ? "<img class=\"comp-req-icon\" src=\"" + escapeHtml(path) + "\" alt=\"" + escapeHtml(element) + "\">" : escapeHtml(element)) +
+        (met ? "\u2713" : "\u2715") + "</span>";
+    });
+    pill.innerHTML = html;
+    pill.title = ok
+      ? req.name + "：必要な元素が揃っています"
+      : req.name + "：" + missing.join("・") + " が足りません（" + req.elements.join("と") + "の両方が必要）";
+    return pill;
   }
 
   // 特攻要素を持ち活力が残っているキャラ（出演可能／待機キャストのみ）

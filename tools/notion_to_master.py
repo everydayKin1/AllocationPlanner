@@ -213,6 +213,9 @@ def build_months(month_pages, stage_pages, char_id_by_page):
         note = p_text(pg, "Note")
         if note:
             enemy["note"] = note
+        reaction = p_select(pg, "Reaction")
+        if reaction:
+            enemy["reaction"] = reaction
         good_el = p_multi(pg, "GoodElement")
         good_tags = p_multi(pg, "GoodTags")
         if good_el:
@@ -529,6 +532,7 @@ def _fake_pages_from_master(path):
                     "GoodElement": {"multi_select": [{"name": x} for x in e.get("element", [])]},
                     "GoodTags": {"multi_select": [{"name": x} for x in e.get("tags", [])]},
                     "RequireAll": {"checkbox": bool(e.get("matchGroups"))},
+                    "Reaction": {"select": ({"name": e["reaction"]} if e.get("reaction") else None)},
                     "AvoidElement": {"multi_select": [{"name": x} for x in e.get("avoidElement", [])]},
                     "AvoidTags": {"multi_select": [{"name": x} for x in e.get("avoidTags", [])]},
                     "RecommendedCast": {"relation": [{"id": pid_by_char[c]} for c in e.get("recommendedCharacterIds", [])]},
@@ -605,7 +609,7 @@ def main():
     check_properties(stage_pages, "幕と敵",
                      ["EnemyName", "Month", "StageId", "StageName", "Option", "Image", "Icon",
                       "Note", "GoodElement", "GoodTags", "RequireAll", "AvoidElement",
-                      "AvoidTags", "RecommendedCast"])
+                      "AvoidTags", "RecommendedCast", "Reaction"])
 
     char_id_by_page = {page_id(p): p_text(p, "ID") for p in char_pages}
     chars = build_characters(char_pages)

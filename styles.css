@@ -5572,3 +5572,31 @@ img[src*="魔導"] {
   color: var(--muted);
   overflow: hidden;
 }
+
+/* 編成状況：有効な元素反応（必要な2元素が揃ったときだけ成立） */
+.comp-pill.reaction {
+  gap: 4px;
+}
+
+.comp-pill.reaction.unmet {
+  opacity: .72;
+  border-style: dashed;
+}
+
+.comp-req {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--warn);
+}
+
+.comp-req.met { color: #2f8a62; }
+
+.comp-req-icon {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+}
