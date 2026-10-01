@@ -335,7 +335,7 @@
     }
     if (!incoming || typeof incoming !== "object") return;
     state = Object.assign(createDefaultState(), incoming);
-    state.settings = Object.assign({ showOwnership: true }, incoming.settings || {});
+    state.settings = Object.assign(createDefaultState().settings, incoming.settings || {});
     lastSavedPayload = rawValue;
     selectedCharacterId = null;
     activeSlot = null;
@@ -981,6 +981,11 @@
     if (!month) return;
     state.activeMonthId = month.id;
     selectedCharacterId = null;
+    // 幕idは月をまたいで同じなので、前の月の警告状態を持ち越さない
+    progressNextWarnedStageId = null;
+    activeSlot = null;
+    closeSlotPicker();
+    closeJoinPicker();
     ensureStateShape();
     selectedStageId = getCurrentStages()[0].id;
     render();
@@ -1772,7 +1777,7 @@
       var flowerIconPath = (master.icons && master.icons.flower) || "";
       var flowerIconHtml = flowerIconPath ? "<img class=\"inline-icon\" src=\"" + escapeHtml(flowerIconPath) + "\" alt=\"\">" : "";
       var stageCost = flow.byStage[stage.id].before - flow.byStage[stage.id].afterAction;
-      var costLine = "<div class=\"flower-cost\">" + flowerIconHtml + (stageCost > 0 ? "-" + stageCost : "±0") + "</div>";
+      var costLine = "<div class=\"flower-cost\">" + flowerIconHtml + formatFlowerDelta(stageCost) + "</div>";
       var detailLine = "<div class=\"flower-detail\">" + flow.byStage[stage.id].before + " → " + flow.byStage[stage.id].afterAction + " ・終了後" + flow.byStage[stage.id].afterReward + "</div>";
       flower.innerHTML = costLine + detailLine;
       controls.appendChild(flower);
@@ -2376,12 +2381,26 @@
     return true;
   }
 
+  // 加入を取り消したキャラは、その月の配置からも外す。
+  // 残したままだと「出演可能キャラに居ないのに配置されている」状態になるため。
+  function clearAssignmentsFor(characterId) {
+    var assignments = getMonthStore(state.assignments, getCurrentMonth().id);
+    Object.keys(assignments).forEach(function (stageId) {
+      var slots = assignments[stageId];
+      if (!Array.isArray(slots)) return;
+      slots.forEach(function (id, i) { if (id === characterId) slots[i] = null; });
+    });
+  }
+
   // 招待回数の調整を伴わない取り消し（ステッパー側で回数を管理する場合に使う）
   function removeJoinSilently(characterId) {
     var entries = getJoinEntries(getCurrentMonth().id);
     var idx = -1;
     entries.forEach(function (entry, i) { if (entry.id === characterId) idx = i; });
-    if (idx !== -1) entries.splice(idx, 1);
+    if (idx !== -1) {
+      entries.splice(idx, 1);
+      clearAssignmentsFor(characterId);
+    }
   }
 
   function removeJoin(characterId) {
@@ -2392,6 +2411,7 @@
     if (idx === -1) return;
     var entry = entries[idx];
     entries.splice(idx, 1);
+    clearAssignmentsFor(characterId);
     if (entry.via === "invite") {
       var actions = getMonthStore(state.actions, monthId);
       if (actions[entry.stageId]) {
@@ -3832,7 +3852,7 @@
     var flowerIconPath = (master.icons && master.icons.flower) || "";
     var flowerIconHtml = flowerIconPath ? "<img class=\"inline-icon\" src=\"" + escapeHtml(flowerIconPath) + "\" alt=\"\">" : "";
     var stageCost = flow.byStage[stage.id].before - flow.byStage[stage.id].afterAction;
-    flower.innerHTML = "<div class=\"flower-cost\">" + (stageCost > 0 ? "-" + stageCost : "±0") + "</div>" +
+    flower.innerHTML = "<div class=\"flower-cost\">" + formatFlowerDelta(stageCost) + "</div>" +
       "<div class=\"flower-detail\">" + flowerIconHtml + flow.byStage[stage.id].before + " → " + flow.byStage[stage.id].afterAction +
       " ・終了後" + flow.byStage[stage.id].afterReward + "</div>";
     dom.progressControls.appendChild(flower);
@@ -4079,6 +4099,13 @@
   function computeInitialFlower() {
     var clamped = Math.max(ROSTER_MIN, Math.min(ROSTER_MAX, countRostered()));
     return 160 + (clamped - ROSTER_MIN) * 30;
+  }
+
+  // 幻戯の花の増減表示。観客からの応援で増える幕もあるので、プラスも出せるようにする。
+  function formatFlowerDelta(cost) {
+    if (cost > 0) return "-" + cost;
+    if (cost < 0) return "+" + (-cost);
+    return "±0";
   }
 
   function calculateFlowerFlow() {
@@ -4508,7 +4535,7 @@
       try {
         var data = JSON.parse(reader.result);
         state = Object.assign(createDefaultState(), data.state || data);
-        state.settings = Object.assign({ showOwnership: true }, (data.state || data).settings || {});
+        state.settings = Object.assign(createDefaultState().settings, (data.state || data).settings || {});
         selectedCharacterId = null;
         ensureStateShape();
         selectedStageId = getCurrentStages()[0].id;
