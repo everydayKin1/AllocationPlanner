@@ -185,6 +185,7 @@ def build_characters(pages):
             "magic": p_check(pg, "Magic"),
             "starBlessing": p_check(pg, "StarBlessing"),
             "starReaction": p_check(pg, "StarReaction"),
+            "gather": p_check(pg, "Gather"),
         }
         chars.append(entry)
     return chars
@@ -497,6 +498,7 @@ def _fake_pages_from_master(path):
             "Magic": {"checkbox": bool(t.get("magic"))},
             "StarBlessing": {"checkbox": bool(t.get("starBlessing"))},
             "StarReaction": {"checkbox": bool(t.get("starReaction"))},
+            "Gather": {"checkbox": bool(t.get("gather"))},
         }})
 
     month_pages, stage_pages = [], []
@@ -596,7 +598,7 @@ def main():
     check_properties(char_pages, "キャラクター一覧",
                      ["Name", "ID", "Element", "Level", "Image", "IsTraveler",
                       "Positions", "Roles", "Weapon", "Nightsoul", "PneumaOusia", "Lunar", "Magic",
-                      "StarBlessing", "StarReaction"])
+                      "StarBlessing", "StarReaction", "Gather"])
     check_properties(month_pages, "月次設定",
                      ["Month", "Elements", "BuffAName", "BuffBName",
                       "BuffCName", "OpeningCast", "SpecialCast"])

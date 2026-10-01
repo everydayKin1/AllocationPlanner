@@ -659,7 +659,7 @@
       .concat(options.weapons || [])
       .concat(["夜魂の加護"])
       .concat(options.pneumaOusia || [])
-      .concat(["月兆", "魔導", "星光の祝福", "星反応"]);
+      .concat(["月兆", "魔導", "星光の祝福", "星反応", "吸引・集敵"]);
   }
 
   function getRosterModalFilterTags() {
@@ -669,7 +669,7 @@
       .concat(options.roles || [])
       .concat(["夜魂の加護"])
       .concat(options.pneumaOusia || [])
-      .concat(["月兆", "魔導", "星光の祝福", "星反応"]);
+      .concat(["月兆", "魔導", "星光の祝福", "星反応", "吸引・集敵"]);
   }
 
   function buildRosterModalFilters() {
@@ -2641,7 +2641,7 @@
     dom.ownedInput.checked = isOwned(character.id);
     dom.artifactSetInput.value = getArtifactSet(character.id);
 
-    var tagTipKeys = { "夜魂の加護": "nightsoul", "月兆": "lunar", "魔導": "magic", "プネウマ": "pneumaOusia", "ウーシア": "pneumaOusia", "星光の祝福": "starBlessing", "星反応": "starReaction" };
+    var tagTipKeys = { "夜魂の加護": "nightsoul", "月兆": "lunar", "魔導": "magic", "プネウマ": "pneumaOusia", "ウーシア": "pneumaOusia", "星光の祝福": "starBlessing", "星反応": "starReaction", "吸引・集敵": "gather" };
     var tags = getVisibleTags(character, { ignoreMagicHidden: true });
     dom.editorTags.innerHTML = tags.map(function (tag) {
       var hidden = tag === "魔導" && state.magicHidden[character.id];
@@ -4015,6 +4015,7 @@
     if (tags.lunar) result.push("月兆");
     if (tags.starBlessing) result.push("星光の祝福");
     if (tags.starReaction) result.push("星反応");
+    if (tags.gather) result.push("吸引・集敵");
     if (tags.magic && getLevel(character) >= 70 && (options.ignoreMagicHidden || !state.magicHidden[character.id])) result.push("魔導");
     return result;
   }
@@ -4361,6 +4362,7 @@
     if (tags.lunar) otherGroup.appendChild(makeTagIconBadge("月兆", "月兆"));
     if (tags.starBlessing) otherGroup.appendChild(makeTagIconBadge("星光の祝福", "星光の祝福"));
     if (tags.starReaction) otherGroup.appendChild(makeTagIconBadge("星反応", "星反応"));
+    if (tags.gather) otherGroup.appendChild(makeTagIconBadge("吸引・集敵", "吸引・集敵"));
     if (tags.magic && getLevel(character) >= 70) otherGroup.appendChild(makeTagIconBadge("魔導", "魔導"));
     var pneumaOusia = Array.isArray(tags.pneumaOusia) ? tags.pneumaOusia : (tags.pneumaOusia ? [tags.pneumaOusia] : []);
     pneumaOusia.forEach(function (value) { otherGroup.appendChild(makeTagIconBadge(value, value)); });
