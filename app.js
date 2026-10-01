@@ -1386,6 +1386,7 @@
       bossIcon.classList.add("has-image");
       var bossImg = document.createElement("img");
       bossImg.src = enemy.image;
+      markImageFallback(bossImg, enemy.icon || enemy.name);
       bossImg.alt = "";
       bossIcon.appendChild(bossImg);
     } else {
@@ -1882,7 +1883,7 @@
       return;
     }
     var iconHtml = enemy.image
-      ? "<span class=\"enemy-icon has-image\"><img src=\"" + escapeHtml(enemy.image) + "\" alt=\"\"></span>"
+      ? "<span class=\"enemy-icon has-image\"><img src=\"" + escapeHtml(enemy.image) + "\" alt=\"\" data-fallback=\"" + escapeHtml(enemy.icon || enemy.name || "") + "\"></span>"
       : "<span class=\"enemy-icon\">" + escapeHtml(enemy.icon || "敵") + "</span>";
     container.innerHTML =
       iconHtml +
@@ -2969,6 +2970,10 @@
     var monthId = getCurrentMonth().id;
     var assignments = getMonthStore(state.assignments, monthId);
     var currentIndex = getStageIndex(stage.id);
+    // 幻戯の花の収支をレールに併記する（どの幕で足りなくなるかを一目で分かるように）
+    var flow = calculateFlowerFlow();
+    var actions = getMonthStore(state.actions, monthId);
+    var buffs = getCurrentBuffs();
     stages.forEach(function (item, index) {
       var filled = (assignments[item.id] || []).filter(Boolean).length;
       var button = document.createElement("button");
@@ -2989,6 +2994,8 @@
         var icon = document.createElement("img");
         icon.className = "rail-icon";
         icon.src = enemy.image;
+      markImageFallback(icon, enemy.icon || enemy.name);
+        markImageFallback(icon, enemy.icon || enemy.name);
         icon.alt = "";
         button.appendChild(icon);
       }
@@ -3007,7 +3014,43 @@
         starMark.title = "星章獲得";
         count.appendChild(starMark);
       }
-      button.appendChild(count);
+      var right = document.createElement("span");
+      right.className = "rail-right";
+      right.appendChild(count);
+      button.appendChild(right);
+
+      // この幕での花の増減と、幕を終えた時点の残量
+      var money = flow.byStage[item.id];
+      if (money) {
+        var action = actions[item.id] || { invites: 0, buffs: {}, cheers: 0 };
+        var buffCount = buffs.reduce(function (sum, buff) {
+          return sum + ((action.buffs && action.buffs[buff.id]) || 0);
+        }, 0);
+        var spent = (action.invites || 0) * master.rules.inviteCost + buffCount * master.rules.buffCost;
+        var gained = ((action.cheers || 0) * ((master.rules && master.rules.cheerGain) || 25)) + getStageReward(item);
+        var delta = gained - spent;
+
+        var flowerRow = document.createElement("span");
+        flowerRow.className = "rail-flower" + (money.afterReward < 0 ? " short" : "");
+
+        var deltaEl = document.createElement("span");
+        deltaEl.className = "rail-flower-delta" + (delta > 0 ? " plus" : (delta < 0 ? " minus" : ""));
+        deltaEl.textContent = delta > 0 ? "+" + delta : String(delta);
+        flowerRow.appendChild(deltaEl);
+
+        var leftEl = document.createElement("span");
+        leftEl.className = "rail-flower-left";
+        leftEl.textContent = money.afterReward;
+        flowerRow.appendChild(leftEl);
+
+        // 「この幕で足りなくなる」のは、前の幕まで足りていたのにこの幕の消費で割り込んだ場合だけ
+        var goesShortHere = money.before >= 0 && money.afterAction < 0;
+        flowerRow.title = "この幕の増減 " + (delta > 0 ? "+" + delta : delta) +
+          " / 幕を終えた時点の幻戯の花 " + money.afterReward +
+          (goesShortHere ? "（この幕で花が足りなくなります）" : "");
+        right.appendChild(flowerRow);
+      }
+
       button.addEventListener("click", function () { setProgressStage(item.id); });
       container.appendChild(button);
     });
@@ -3507,6 +3550,7 @@
           var face = document.createElement("img");
           face.className = "remaining-opt-face";
           face.src = enemyOpt.image;
+          markImageFallback(face, enemyOpt.icon || enemyOpt.name);
           face.alt = enemyOpt.name || "";
           optWrap.appendChild(face);
         }
@@ -3843,6 +3887,7 @@
         enemyIcon.classList.add("has-image");
         var enemyImg = document.createElement("img");
         enemyImg.src = enemy.image;
+        markImageFallback(enemyImg, enemy.icon || enemy.name);
         enemyImg.alt = "";
         enemyIcon.appendChild(enemyImg);
       } else {
@@ -4333,6 +4378,27 @@
     }
     return character ? character.image : "";
   }
+
+  // 画像ファイルが無い／読めないときに、代替テキスト（敵の Icon 列）へ切り替える。
+  // 月データを先に入れて画像を後から追加する運用があるため、空白のままにしない。
+  function markImageFallback(img, fallbackText) {
+    if (!img) return img;
+    if (fallbackText) img.setAttribute("data-fallback", fallbackText);
+    return img;
+  }
+
+  document.addEventListener("error", function (event) {
+    var img = event.target;
+    if (!img || img.tagName !== "IMG" || img.dataset.fallbackDone) return;
+    img.dataset.fallbackDone = "1";
+    var text = img.getAttribute("data-fallback") || "";
+    if (!text) { img.style.display = "none"; return; }
+    var span = document.createElement("span");
+    span.className = "img-fallback-text";
+    span.textContent = text.slice(0, 4);
+    span.title = text;
+    if (img.parentNode) img.parentNode.replaceChild(span, img);
+  }, true);
 
   function setPortrait(container, character) {
     container.innerHTML = "";

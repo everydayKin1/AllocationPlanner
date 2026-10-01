@@ -93,7 +93,6 @@ window.GENGEKI_MASTER_DATA = {
       id: "2026-07",
       label: "2026年07月",
       elements: ["炎", "氷", "雷"],
-      travelerElements: ["炎", "雷"],
       openingCast: ["arlecchino", "bennett", "ganyu", "diona", "cyno", "beidou"],
       specialCast: ["kinich", "jahoda", "yumemizukimizuki", "columbina"],
       buffs: [
@@ -149,7 +148,6 @@ window.GENGEKI_MASTER_DATA = {
       id: "2026-08",
       label: "2026年08月",
       elements: ["水", "雷", "氷"],
-      travelerElements: ["水", "雷", "氷"],
       openingCast: ["yelan", "aino", "flins", "ororon", "skirk", "layla"],
       specialCast: ["arlecchino", "chevreuse", "kaedeharakazuha", "tighnari"],
       buffs: [
@@ -181,7 +179,6 @@ window.GENGEKI_MASTER_DATA = {
       id: "2026-09",
       label: "2026年09月",
       elements: ["水", "雷", "草"],
-      travelerElements: ["水", "雷", "草"],
       openingCast: ["cyno", "kukishinobu", "columbina", "xingqiu", "lauma", "kaveh"],
       specialCast: ["sandrone", "nicole", "sucrose", "odette"],
       buffs: [
@@ -233,7 +230,6 @@ window.GENGEKI_MASTER_DATA = {
       id: "2026-10",
       label: "2026年10月",
       elements: ["水", "氷", "風"],
-      travelerElements: ["水", "氷", "風"],
       openingCast: ["neuvillette", "barbara", "citlali", "kaeya", "wanderer", "prune"],
       specialCast: ["ineffa", "yaemiko", "thoma", "chiori"],
       buffs: [
@@ -247,18 +243,42 @@ window.GENGEKI_MASTER_DATA = {
         { label: "風", icon: "風" }
       ],
       stages: [
-        { id: "act-1", name: "第1幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
-        { id: "act-2", name: "第2幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
-        { id: "act-3", name: "第3幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
-        { id: "act-4", name: "第4幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
-        { id: "act-5", name: "第5幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
-        { id: "act-6", name: "第6幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
-        { id: "act-7", name: "第7幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
-        { id: "act-8", name: "第8幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
-        { id: "act-9", name: "第9幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
-        { id: "arcana-1", name: "アルカナ挑戦1", reward: 90, special: true, allowedFromAfter: "第3幕", enemy: { name: "", icon: "", note: "" } },
-        { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "", icon: "", note: "" } },
-        { id: "act-10", name: "第10幕", reward: 0, final: true, enemy: { name: "", icon: "", note: "" } }
+        { id: "act-1", name: "第1幕", reward: 90, enemyOptions: [
+          { name: "獣域ハウンド（雷）", icon: "獣域ハウンド（雷）", image: "./images/enemy/獣域ハウンド（雷）.webp", note: "合成獣の方がおすすめ　炎スライム4体、ハウンド・炎アビス・草ヒルチャール", element: ["水"] },
+          { name: "合成獣・ホーンベア×2", icon: "合成獣・ホーンベア", image: "./images/enemy/合成獣・ホーンベア.webp", note: "[おすすめ]2体で討伐" },
+          { name: "1-精鋭" }
+        ] },
+        { id: "act-2", name: "第2幕", reward: 90, enemyOptions: [
+          { name: "小型ブリプリ×3、大型ブリプリ×1・小型ブリプリ×2", icon: "大型瓦礫ブリーチャープリムス", image: "./images/enemy/大型瓦礫ブリーチャープリムス.webp", note: "大型が若干うざったいがプネウマ・ウーシアなどで黙らせられます", tags: ["プネウマ", "ウーシア"] },
+          { name: "ファデュイ・烈風の従者", icon: "ファデュイ・烈風の従者", image: "./images/enemy/ファデュイ・烈風の従者 .webp", note: "3体のファデュイ（開始すぐ右・炎銃にアタックで集敵できる）→風のお姉さん1体" },
+          { name: "2-精鋭", note: "火力に余裕があれば" }
+        ] },
+        { id: "act-3", name: "第3幕（ボス）", reward: 125, enemy: { name: "3-ボス", icon: "恒常からくり陣形", image: "./images/enemy/恒常からくり陣形.webp", note: "分裂体は黄色い魔法陣がついてるやつ" } },
+        { id: "act-4", name: "第4幕", reward: 90, enemyOptions: [
+          { name: "ヴァルコドラクの投擲手", icon: "ヴァルコドラクの投擲手", image: "./images/enemy/ヴァルコドラクの投擲手.webp", note: "5体を維持、集敵と凍結が有効" },
+          { name: "ファデュイの皆さん", icon: "デットエージェント", image: "./images/enemy/デットエージェント.webp", note: "3体を維持？集敵キャラがいなければこちら　雷ハンマー、炎銃、雷蛍術師など" },
+          { name: "陸巡艇", image: "./images/enemy/陸巡艇・最新万能攻撃型.webp", note: "だるいのでおすすめしない" }
+        ] },
+        { id: "act-5", name: "第5幕", reward: 90, enemyOptions: [
+          { name: "ルートコネクター", icon: "ルートコネクター", image: "./images/enemy/ルートコネクター.webp" },
+          { name: "蒼狼の追跡者・9体討伐", icon: "蒼狼の追跡者", image: "./images/enemy/蒼狼の追跡者.webp" },
+          { name: "キノコン×40", icon: "パタパタ草マッシュロン", image: "./images/enemy/パタパタ草マッシュロン.webp", note: "集敵しながら2周する　きついので避ける" }
+        ] },
+        { id: "act-6", name: "第6幕（ボス）", reward: 125, enemy: { name: "フュリオサ", icon: "フュリオサ", image: "./images/enemy/フュリオサ.webp", note: "なんでもいいので星反応キャラかつ氷+風もしくは氷+雷", tags: ["星反応"], recommendedCharacterIds: ["vesna", "odette", "tr-cryo"] } },
+        { id: "act-7", name: "第7幕", reward: 90, enemyOptions: [
+          { name: "アビスの詠唱者・炎", image: "./images/enemy/アビスの詠唱者・炎.webp", note: "水キャラが余っていれば。フリューゲルレーヴェや統御デバイスのこともあるのでこちらがおすすめ", element: ["水"] },
+          { name: "アビスの詠唱者・雷", image: "./images/enemy/アビスの詠唱者・雷.webp", note: "氷キャラが余っていれば", element: ["氷"] },
+          { name: "【精鋭】竜戦士の皆さん", image: "./images/enemy/クク竜戦士・蒼天.webp", note: "きついので避ける　複数体を処理可能ならまあ", tags: ["ライフキーパー"] }
+        ] },
+        { id: "act-8", name: "第8幕（ボス）", reward: 125, enemy: { name: "フリューゲルレーヴェ", icon: "フリューゲルレーヴェ", image: "./images/enemy/フリューゲルレーヴェ.webp", element: ["氷"] } },
+        { id: "act-9", name: "第9幕", reward: 90, enemyOptions: [
+          { name: "流燃体&トリックフラワー", image: "./images/enemy/流燃体.webp", note: "2体討伐でOK", element: ["水", "氷"] },
+          { name: "木の精", image: "./images/enemy/宿老の樹霊.webp" },
+          { name: "【精鋭】遺跡ドレイク・遺跡シリーズ", image: "./images/enemy/遺跡ドレイク.webp" }
+        ] },
+        { id: "arcana-1", name: "アルカナ挑戦1", reward: 90, special: true, allowedFromAfter: "第3幕", enemy: { name: "獣域ハウンド×17", icon: "獣域ハウンド", image: "./images/enemy/獣域ハウンド.webp", note: "3体ずつ出現します。実質1分30秒（星章獲得目標なら）討伐、ダメージが入るステージなので耐久役も連れてくのが無難", tags: ["ヒーラー"] } },
+        { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "遺跡重機シリーズ×10", icon: "遺跡機械シリーズ", image: "./images/enemy/遺跡重機.webp", note: "時計回りに1体ずつ・1分で10体討伐", tags: ["ライフキーパー"] } },
+        { id: "act-10", name: "第10幕（ボス）", reward: 0, final: true, enemy: { name: "統御デバイス", icon: "統御デバイス", image: "./images/enemy/統御デバイス .webp", note: "要氷元素", element: ["氷"], avoidTags: ["夜魂の加護"] } }
       ]
     }
   ],

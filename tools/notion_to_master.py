@@ -240,7 +240,6 @@ def build_months(month_pages, stage_pages, char_id_by_page):
         if not month_id:
             continue
         elements = p_multi(pg, "Elements")
-        traveler = p_multi(pg, "TravelerElements") or elements
         buffs = []
         for key, bid in (("BuffAName", "buffA"), ("BuffBName", "buffB"), ("BuffCName", "buffC")):
             buffs.append({"id": bid, "name": p_text(pg, key)})
@@ -270,7 +269,6 @@ def build_months(month_pages, stage_pages, char_id_by_page):
             "id": month_id,
             "label": month_id.replace("-", "年") + "月" if re.match(r"^\d{4}-\d{2}$", month_id) else month_id,
             "elements": elements,
-            "travelerElements": traveler,
             "openingCast": [char_id_by_page[i] for i in p_relation_ids(pg, "OpeningCast") if i in char_id_by_page],
             "specialCast": [char_id_by_page[i] for i in p_relation_ids(pg, "SpecialCast") if i in char_id_by_page],
             "buffs": buffs,
@@ -410,7 +408,6 @@ def render_months(months):
         b.append('      id: %s,' % js(m["id"]))
         b.append('      label: %s,' % js(m["label"]))
         b.append('      elements: %s,' % js(m["elements"]))
-        b.append('      travelerElements: %s,' % js(m["travelerElements"]))
         b.append('      openingCast: %s,' % js(m["openingCast"]))
         b.append('      specialCast: %s,' % js(m["specialCast"]))
         b.append("      buffs: [")
@@ -508,7 +505,6 @@ def _fake_pages_from_master(path):
         month_pages.append({"id": mpid, "properties": {
             "Month": {"title": [{"plain_text": m["id"]}]},
             "Elements": {"multi_select": [{"name": x} for x in m["elements"]]},
-            "TravelerElements": {"multi_select": [{"name": x} for x in m.get("travelerElements", [])]},
             "BuffAName": rt(m["buffs"][0]["name"]),
             "BuffBName": rt(m["buffs"][1]["name"]),
             "BuffCName": rt(m["buffs"][2]["name"]),
@@ -602,7 +598,7 @@ def main():
                       "Positions", "Roles", "Weapon", "Nightsoul", "PneumaOusia", "Lunar", "Magic",
                       "StarBlessing", "StarReaction"])
     check_properties(month_pages, "月次設定",
-                     ["Month", "Elements", "TravelerElements", "BuffAName", "BuffBName",
+                     ["Month", "Elements", "BuffAName", "BuffBName",
                       "BuffCName", "OpeningCast", "SpecialCast"])
     check_properties(stage_pages, "幕と敵",
                      ["EnemyName", "Month", "StageId", "StageName", "Option", "Image", "Icon",

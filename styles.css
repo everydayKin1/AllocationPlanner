@@ -5516,3 +5516,59 @@ img[src*="魔導"] {
   align-items: center;
   gap: 8px;
 }
+
+/* 進行モードのレール：幻戯の花の収支 */
+/* 右端で「配置数」と「花の収支」を縦に積む（レールの高さを増やさないため） */
+.rail-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  line-height: 1.1;
+}
+
+.rail-flower {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 9.5px;
+  line-height: 1.1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.rail-flower-delta {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.rail-flower-delta.plus { color: #2f8a62; }
+.rail-flower-delta.minus { color: #b4607f; }
+
+.rail-flower-left {
+  color: var(--muted);
+  opacity: .85;
+}
+
+/* 花が足りなくなる幕は残量を赤く出す */
+.rail-flower.short .rail-flower-left {
+  color: var(--warn);
+  font-weight: 700;
+  opacity: 1;
+}
+
+/* 画像が見つからないときの代替テキスト */
+.img-fallback-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--muted);
+  overflow: hidden;
+}
