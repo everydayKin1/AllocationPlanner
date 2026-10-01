@@ -183,6 +183,8 @@ def build_characters(pages):
             "pneumaOusia": ("" if not pneuma else (pneuma[0] if len(pneuma) == 1 else pneuma)),
             "lunar": p_check(pg, "Lunar"),
             "magic": p_check(pg, "Magic"),
+            "starBlessing": p_check(pg, "StarBlessing"),
+            "starReaction": p_check(pg, "StarReaction"),
         }
         chars.append(entry)
     return chars
@@ -496,6 +498,8 @@ def _fake_pages_from_master(path):
             "PneumaOusia": {"multi_select": [{"name": x} for x in po_list]},
             "Lunar": {"checkbox": bool(t.get("lunar"))},
             "Magic": {"checkbox": bool(t.get("magic"))},
+            "StarBlessing": {"checkbox": bool(t.get("starBlessing"))},
+            "StarReaction": {"checkbox": bool(t.get("starReaction"))},
         }})
 
     month_pages, stage_pages = [], []
@@ -595,7 +599,8 @@ def main():
     # プロパティ名が想定どおりか先に確かめる（Notion側で列名を変えると壊れるため）
     check_properties(char_pages, "キャラクター一覧",
                      ["Name", "ID", "Element", "Level", "Image", "IsTraveler",
-                      "Positions", "Roles", "Weapon", "Nightsoul", "PneumaOusia", "Lunar", "Magic"])
+                      "Positions", "Roles", "Weapon", "Nightsoul", "PneumaOusia", "Lunar", "Magic",
+                      "StarBlessing", "StarReaction"])
     check_properties(month_pages, "月次設定",
                      ["Month", "Elements", "TravelerElements", "BuffAName", "BuffBName",
                       "BuffCName", "OpeningCast", "SpecialCast"])
