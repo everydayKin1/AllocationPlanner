@@ -29,6 +29,7 @@ window.GENGEKI_MASTER_DATA = {
     lunar: "./images/icon/月兆_icon.webp",
     magic: "./images/icon/魔導_icon.webp",
     nightsoul: "./images/icon/夜魂の加護_icon.webp",
+    starBlessing: "./images/icon/星光の祝福_icon.png",
     reactions: {
       "過負荷": "./images/シャイニングブレス/過負荷_icon.png",
       "溶解": "./images/シャイニングブレス/溶解_icon.png",

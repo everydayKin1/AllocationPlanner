@@ -4506,6 +4506,9 @@
     if (icons.roles && icons.roles[tag]) return icons.roles[tag];
     if (tag === "夜魂の加護" && icons.nightsoul) return icons.nightsoul;
     if (tag === "月兆" && icons.lunar) return icons.lunar;
+    if (tag === "星光の祝福" && icons.starBlessing) return icons.starBlessing;
+    if (tag === "星反応" && icons.starReaction) return icons.starReaction;
+    if (tag === "吸引・集敵" && icons.gather) return icons.gather;
     if (tag === "魔導" && icons.magic) return icons.magic;
     if (tag === "プネウマ" && icons.pneuma) return icons.pneuma;
     if (tag === "ウーシア" && icons.ousia) return icons.ousia;
