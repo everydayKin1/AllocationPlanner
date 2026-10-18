@@ -316,8 +316,8 @@ document.write('<scr'+'ipt src="./card-data.js?v='+_v+'"><\/scr'+'ipt>');
    ============================================================ */
 const DATA = window.GENGEKI_MASTER_DATA || {};
 const CHARS = (DATA.characters || []).filter(c => c && c.name);
-const CARD = window.CARD_DATA || {};           // card-data.js（武器・聖遺物・敵・読みがな）
-const WEAPONS = CARD.weapons || [];
+const CARD = window.CARD_DATA || {};           // card-data.js（聖遺物・敵・読みがな）
+const WEAPONS = DATA.weapons || [];          // Notion「武器一覧」から同期
 const ENEMIES = CARD.enemies || [];
 const ARTIFACTS = CARD.artifacts || [];
 const READINGS = CARD.readings || {};

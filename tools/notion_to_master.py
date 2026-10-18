@@ -27,11 +27,16 @@ NOTION_VERSION = "2022-06-28"
 DB_CHARACTERS = "acd855073bd543d0917e9b774d5f05f3"  # 幻想シアター・キャラクター一覧
 DB_MONTHS = "332e6f6c6cd7440fa5f7ce158a7369dd"      # 幻想シアター・月次設定
 DB_STAGES = "97a95927e91e4054904f283cafd9876e"      # 幻想シアター・幕と敵
+DB_WEAPONS = "b6838062599942fc99b3b8c8ffa53bc7"     # 幻想シアター・武器一覧
 
 MASTER_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "master-data.js")
 
 CHARACTER_IMAGE_DIR = "./images/character/"
 ENEMY_IMAGE_DIR = "./images/enemy/"
+WEAPON_IMAGE_DIR = "./images/weapon/"
+
+# 武器の並び順（武器種 → レア度の高い順 → 名前）。Notion の取得順に左右されないよう固定する。
+WEAPON_TYPE_ORDER = ["片手剣", "両手剣", "長柄武器", "法器", "弓"]
 
 # 幕の骨格。毎月同じなのでここで固定管理する。
 STAGE_ORDER = ["act-1", "act-2", "act-3", "act-4", "act-5", "act-6",
@@ -207,6 +212,40 @@ def build_characters(pages):
         }
         chars.append(entry)
     return chars
+
+
+def build_weapons(pages):
+    """武器DBのページ群 → master-data.js の weapons 配列"""
+    items = []
+    for pg in pages:
+        name = p_title(pg, "Name")
+        if not name:
+            continue  # 未入力の行はスキップ
+        rarity = p_select(pg, "Rarity")
+        image = p_text(pg, "Image")
+        entry = {
+            "name": name,
+            "rarity": int(rarity) if rarity else 5,
+            "type": p_select(pg, "Type"),
+            "reading": p_text(pg, "Reading"),
+        }
+        motif = p_text(pg, "Motif")
+        if motif:
+            entry["motif"] = motif
+        entry["image"] = (WEAPON_IMAGE_DIR + image) if image else ""
+        items.append(entry)
+
+    def key(w):
+        t = w.get("type", "")
+        ti = WEAPON_TYPE_ORDER.index(t) if t in WEAPON_TYPE_ORDER else len(WEAPON_TYPE_ORDER)
+        return (ti, -w.get("rarity", 0), w["name"])
+
+    items.sort(key=key)
+    for n, w in enumerate(items, 1):      # 並べ終えてから id を振る
+        w_id = {"id": "wp-%d" % n}
+        w_id.update(w)
+        items[n - 1] = w_id
+    return items
 
 
 def build_months(month_pages, stage_pages, char_id_by_page):
@@ -422,6 +461,13 @@ def render_characters(chars):
     return "\n".join(lines)
 
 
+def render_weapons(weapons):
+    lines = ["    " + js(w) + "," for w in weapons]
+    if lines:
+        lines[-1] = lines[-1][:-1]
+    return "\n".join(lines)
+
+
 def render_months(months):
     out = []
     for m in months:
@@ -465,11 +511,13 @@ def splice_block(source, key, new_body):
     return source[:start] + new_body + source[end:]
 
 
-def build_master_js(source, chars, months):
+def build_master_js(source, chars, months, weapons=None):
     chars = apply_release_info(chars, source)
     chars = sort_characters(chars, source)
     out = splice_block(source, "characters", render_characters(chars))
     out = splice_block(out, "months", render_months(months))
+    if weapons:
+        out = splice_block(out, "weapons", render_weapons(weapons))
     return out
 
 
@@ -489,9 +537,21 @@ def _fake_pages_from_master(path):
 
     chars = grab("characters")
     months = grab("months")
+    weapons = grab("weapons") if "\n  weapons: [" in src else []
 
     def rt(s):
         return {"rich_text": [{"plain_text": s}]} if s else {"rich_text": []}
+
+    weapon_pages = []
+    for n, w in enumerate(weapons):
+        weapon_pages.append({"id": "w%031d" % n, "properties": {
+            "Name": {"title": [{"plain_text": w["name"]}]},
+            "Rarity": {"select": {"name": str(w.get("rarity", 5))}},
+            "Type": {"select": {"name": w.get("type", "")}},
+            "Reading": rt(w.get("reading", "")),
+            "Motif": rt(w.get("motif", "")),
+            "Image": rt(os.path.basename(w.get("image", ""))),
+        }})
 
     char_pages = []
     pid_by_char = {}
@@ -556,16 +616,17 @@ def _fake_pages_from_master(path):
                     "AvoidTags": {"multi_select": [{"name": x} for x in e.get("avoidTags", [])]},
                     "RecommendedCast": {"relation": [{"id": pid_by_char[c]} for c in e.get("recommendedCharacterIds", [])]},
                 }})
-    return char_pages, month_pages, stage_pages
+    return char_pages, month_pages, stage_pages, weapon_pages
 
 
 def selftest():
     src = open(MASTER_PATH, encoding="utf-8").read()
-    char_pages, month_pages, stage_pages = _fake_pages_from_master(MASTER_PATH)
+    char_pages, month_pages, stage_pages, weapon_pages = _fake_pages_from_master(MASTER_PATH)
     char_id_by_page = {page_id(p): p_text(p, "ID") for p in char_pages}
     chars = build_characters(char_pages)
     months = build_months(month_pages, stage_pages, char_id_by_page)
-    out = build_master_js(src, chars, months)
+    weapons = build_weapons(weapon_pages)
+    out = build_master_js(src, chars, months, weapons)
 
     def parse(text, key):
         i = text.index("\n  %s: [" % key)
@@ -586,7 +647,7 @@ def selftest():
         return v
 
     ok = True
-    for key in ("characters", "months"):
+    for key in ("characters", "months", "weapons"):
         before, after = norm(parse(src, key)), norm(parse(out, key))
         if before == after:
             print("セルフテスト OK: %s は既存データと完全に一致（%d件）" % (key, len(after)))
@@ -615,7 +676,9 @@ def main():
     char_pages = notion_query(DB_CHARACTERS, token, created_asc)
     month_pages = notion_query(DB_MONTHS, token, created_asc)
     stage_pages = notion_query(DB_STAGES, token, created_asc)
-    print("取得: キャラ %d件 / 月 %d件 / 敵 %d件" % (len(char_pages), len(month_pages), len(stage_pages)))
+    weapon_pages = notion_query(DB_WEAPONS, token, created_asc)
+    print("取得: キャラ %d件 / 月 %d件 / 敵 %d件 / 武器 %d件"
+          % (len(char_pages), len(month_pages), len(stage_pages), len(weapon_pages)))
 
     # プロパティ名が想定どおりか先に確かめる（Notion側で列名を変えると壊れるため）
     check_properties(char_pages, "キャラクター一覧",
@@ -629,10 +692,13 @@ def main():
                      ["EnemyName", "Month", "StageId", "StageName", "Option", "Image", "Icon",
                       "Note", "GoodElement", "GoodTags", "RequireAll", "AvoidElement",
                       "AvoidTags", "RecommendedCast", "Reaction"])
+    check_properties(weapon_pages, "武器一覧",
+                     ["Name", "Rarity", "Type", "Reading", "Motif", "Image"])
 
     char_id_by_page = {page_id(p): p_text(p, "ID") for p in char_pages}
     chars = build_characters(char_pages)
     months = build_months(month_pages, stage_pages, char_id_by_page)
+    weapons = build_weapons(weapon_pages)
 
     # 取り違えや一時的な障害で既存データを消してしまわないための安全弁
     if not chars:
@@ -641,20 +707,23 @@ def main():
         raise SystemExit("月次データが0件でした。安全のため書き込みを中止します。")
     if not stage_pages:
         raise SystemExit("幕と敵が0件でした。安全のため書き込みを中止します。")
+    if not weapons:
+        raise SystemExit("武器が0件でした。安全のため書き込みを中止します。")
 
     missing_id = [p_title(p, "Name") for p in char_pages if not p_text(p, "ID")]
     if missing_id:
         print("注意: ID が空のキャラは取り込みませんでした → %s" % "、".join(missing_id[:10]))
 
     src = open(MASTER_PATH, encoding="utf-8").read()
-    out = build_master_js(src, chars, months)
+    out = build_master_js(src, chars, months, weapons)
 
     if out == src:
         print("変更はありません。")
         return
 
     open(MASTER_PATH, "w", encoding="utf-8").write(out)
-    print("master-data.js を更新しました（キャラ %d名 / 月 %d件）" % (len(chars), len(months)))
+    print("master-data.js を更新しました（キャラ %d名 / 月 %d件 / 武器 %d件）"
+          % (len(chars), len(months), len(weapons)))
 
 
 if __name__ == "__main__":
