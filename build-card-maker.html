@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ビルドカード メーカー</title>
+<style>
+  /* カード（キャンバス）描画用フォント。UI パネルには使いません。 */
+  @font-face{ font-family:"CardFont"; src:url("./zhcn.ttf") format("truetype"); font-display:swap; }
+  :root{
+    --void:#0B0E1C;
+    --panel:#161A31;
+    --panel-2:#1E2340;
+    --line:#2C3255;
+    --ink:#ECEAF7;
+    --muted:#8A8DAE;
+    --gold:#E6C583;
+    --glow:#78D8EE;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(1100px 600px at 12% -10%, #1B2246 0%, transparent 60%),
+      radial-gradient(900px 500px at 105% 110%, #22183A 0%, transparent 60%),
+      var(--void);
+    color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+    font-size:14px;
+    line-height:1.6;
+  }
+  .wrap{display:grid;grid-template-columns:400px 1fr;min-height:100%}
+  @media (max-width:900px){ .wrap{grid-template-columns:1fr} }
+
+  /* ---- side ---- */
+  .side{
+    background:linear-gradient(180deg,rgba(22,26,49,.96),rgba(15,18,36,.96));
+    border-right:1px solid var(--line);
+    padding:22px 20px 60px;
+    overflow-y:auto;
+    max-height:100vh;
+  }
+  @media (max-width:900px){ .side{max-height:none;border-right:none;border-bottom:1px solid var(--line)} }
+
+  .brand{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .brand h1{ font-size:19px;margin:0;letter-spacing:.14em;font-weight:600; }
+  .brand span{font-size:10px;letter-spacing:.3em;color:var(--gold);text-transform:uppercase}
+  .lede{color:var(--muted);font-size:12px;margin:0 0 20px}
+
+  .group{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
+  .group > h2{ font-size:11px;letter-spacing:.22em;color:var(--gold); margin:0 0 12px;font-weight:600; }
+  label{display:block;font-size:11px;color:var(--muted);margin:0 0 5px;letter-spacing:.08em}
+
+  input[type=text], select{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--ink);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus, select:focus{
+    outline:none;border-color:var(--glow);box-shadow:0 0 0 3px rgba(120,216,238,.16);
+  }
+  .field{margin-bottom:12px}
+
+  .seg{display:flex;gap:4px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:3px}
+  .seg button{
+    flex:1;background:none;border:none;color:var(--muted);font:inherit;font-size:12px;
+    padding:6px 2px;border-radius:7px;cursor:pointer;transition:.15s;
+  }
+  .seg button:hover{color:var(--ink)}
+  .seg button[aria-pressed=true]{background:var(--glow);color:#08121A;font-weight:600}
+  .seg button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+  .check{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--muted);font-size:12px;cursor:pointer}
+  .check input{accent-color:var(--glow);width:15px;height:15px}
+
+  /* slot cards */
+  .slot{
+    border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;
+    background:linear-gradient(180deg,rgba(30,35,64,.7),rgba(22,26,49,.5));
+  }
+  .slot.focus{border-color:var(--glow);box-shadow:0 0 0 3px rgba(120,216,238,.16)}
+  .slot > header{ display:flex;align-items:center;gap:8px;margin:-2px 0 10px; }
+  .slot > header b{font-size:11px;letter-spacing:.2em;color:var(--gold);font-weight:600}
+  .slot > header .sp{flex:1}
+  .mini{
+    background:none;border:1px solid var(--line);color:var(--muted);
+    border-radius:7px;font:inherit;font-size:11px;padding:3px 9px;cursor:pointer;transition:.15s;
+  }
+  .mini:hover{border-color:var(--glow);color:var(--ink)}
+
+  .seclabel{font-size:10px;letter-spacing:.2em;color:var(--muted);margin:10px 0 6px;font-weight:600}
+
+  /* search */
+  .search{position:relative;margin-bottom:4px}
+  .s-input{width:100%}
+  .results{
+    position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:9;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    max-height:260px;overflow-y:auto;box-shadow:0 18px 40px -18px rgba(0,0,0,.8);
+  }
+  .result{display:flex;align-items:center;gap:9px;padding:7px 9px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+  .result:last-child{border-bottom:none}
+  .result:hover{background:var(--panel-2)}
+  .result.muted{color:var(--muted);font-size:12px;justify-content:center;cursor:default}
+  .res-th{width:34px;height:34px;border-radius:8px;flex:none;background:var(--void) center/cover no-repeat;border:1px solid var(--line)}
+  .res-tx{min-width:0;line-height:1.3}
+  .res-tx b{display:block;font-size:12.5px;color:var(--ink);font-weight:500}
+  .res-tx span{font-size:10.5px;color:var(--muted)}
+  .res-tx .motif{color:var(--gold);font-style:normal;font-weight:600}
+  /* レア度ラベル（暗い背景でも読める明度に調整） */
+  .star{font-style:normal;font-weight:700}
+  .star.s5{color:#F0C46A}
+  .star.s4{color:#C6A2FF}
+  .star.s3{color:#7FC9EC}
+
+  /* selected chip */
+  .chip{display:flex;align-items:center;gap:9px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:rgba(11,14,28,.4);margin-bottom:4px}
+  .chip-th{width:36px;height:36px;border-radius:8px;flex:none;background:var(--void) center/cover no-repeat;border:1px solid var(--line)}
+  .chip-tx{flex:1;min-width:0;line-height:1.3}
+  .chip-tx b{display:block;font-size:13px;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chip-tx span{font-size:10.5px;color:var(--muted)}
+
+  /* param row */
+  .prow{display:flex;gap:8px;margin:8px 0 2px}
+  .prow > .lb{flex:1;min-width:0}
+  .lb label{margin-bottom:4px}
+  .stepper{display:flex;align-items:center;gap:5px}
+  .stepper button{
+    width:24px;height:26px;flex:none;border-radius:7px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--ink);font:inherit;font-size:14px;cursor:pointer;line-height:1;
+  }
+  .stepper button:hover{border-color:var(--glow)}
+  .stepper .val{
+    flex:1;text-align:center;font-size:12.5px;font-variant-numeric:tabular-nums;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:3px 0;min-width:40px;
+  }
+  .mini-seg button{font-size:11px;padding:5px 2px}
+  .lb input[type=text]{padding:6px 8px;text-align:center}
+
+  .manual{margin-top:10px}
+  .manual > summary{font-size:11px;color:var(--muted);cursor:pointer;list-style:none}
+  .manual > summary::-webkit-details-marker{display:none}
+  .manual > summary::before{content:"＋ ";color:var(--glow)}
+  .manual[open] > summary::before{content:"－ "}
+  .mfile{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:11px;color:var(--muted)}
+  .mfile span{color:var(--ink)}
+  .mfile input{font-size:11px;color:var(--muted);max-width:180px}
+
+  /* ---- stage ---- */
+  .stage{ padding:26px 30px 40px;display:flex;flex-direction:column;gap:16px;min-width:0; }
+  .canvas-hold{
+    position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);
+    background: repeating-conic-gradient(#171B33 0% 25%, #12162B 0% 50%) 50%/22px 22px;
+    box-shadow:0 24px 70px -30px rgba(120,216,238,.35), 0 0 0 1px rgba(255,255,255,.02) inset;
+  }
+  #cv{display:block;width:100%;height:auto}
+
+  .bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .cta{
+    border:none;border-radius:11px;padding:11px 22px;font:inherit;font-size:14px;font-weight:600;
+    cursor:pointer;transition:.15s;
+    background:linear-gradient(135deg,var(--glow),#A8B4FF);color:#08121A;
+    box-shadow:0 6px 24px -8px rgba(120,216,238,.7);
+  }
+  .cta:hover{transform:translateY(-1px)}
+  .ghost{
+    border:1px solid var(--line);border-radius:11px;padding:11px 18px;font:inherit;font-size:13px;
+    background:var(--panel-2);color:var(--ink);cursor:pointer;transition:.15s;
+  }
+  .ghost:hover{border-color:var(--glow)}
+  button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);
+    background:var(--panel-2);border:1px solid var(--glow);color:var(--ink);
+    padding:10px 20px;border-radius:11px;font-size:13px;opacity:0;pointer-events:none;
+    transition:.25s;z-index:60;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---- youtube preview modal ---- */
+  .modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal[hidden]{display:none}
+  .modal-bg{position:absolute;inset:0;background:rgba(4,6,14,.72);backdrop-filter:blur(3px)}
+  .modal-card{
+    position:relative;background:#0f0f0f;color:#f1f1f1;border:1px solid #272727;border-radius:16px;
+    width:min(940px,94vw);max-height:88vh;overflow-y:auto;padding:22px 24px 26px;
+    box-shadow:0 40px 120px -30px rgba(0,0,0,.9);
+    font-family:"Roboto","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
+  }
+  .modal-x{position:absolute;top:12px;right:14px;background:none;border:none;color:#aaa;font-size:26px;cursor:pointer;line-height:1}
+  .modal-x:hover{color:#fff}
+  .modal-card h3{margin:0 0 4px;font-size:15px;font-weight:600;color:#fff}
+  .modal-sub{margin:0 0 18px;font-size:12px;color:#aaa}
+  .yt-dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.8);color:#fff;font-size:12px;font-weight:600;padding:1px 6px;border-radius:5px}
+  .yt-sech{font-size:12px;color:#aaa;letter-spacing:.05em;margin:0 0 10px;text-transform:uppercase}
+  .yt-list{display:flex;flex-direction:column;gap:10px}
+  .yt-row{display:flex;gap:10px}
+  .yt-rowthumb{position:relative;width:168px;flex:none;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000}
+  .yt-rowthumb img,.yt-rowthumb canvas{width:100%;height:100%;object-fit:contain;display:block}
+  .yt-rowtx{min-width:0}
+  .yt-rowtitle{font-size:13.5px;font-weight:500;color:#f1f1f1;line-height:1.3;margin-bottom:4px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .yt-rowmeta{font-size:11.5px;color:#aaa}
+  @media (max-width:640px){ .yt-rowthumb{width:120px} }
+
+  /* 検索結果ページでの見え方 */
+  .yt-search{display:flex;flex-direction:column;gap:18px;margin-bottom:26px}
+  .yt-srow{display:flex;gap:16px}
+  .yt-sthumb{position:relative;width:360px;flex:none;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+  .yt-sthumb canvas{width:100%;height:100%;object-fit:contain;display:block}
+  .yt-stx{min-width:0;padding-top:2px}
+  .yt-stitle{font-size:18px;font-weight:400;color:#f1f1f1;line-height:1.4;margin-bottom:6px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .yt-smeta{font-size:12px;color:#aaa;margin-bottom:12px}
+  .yt-sch{display:flex;align-items:center;gap:8px;font-size:12px;color:#aaa;margin-bottom:8px}
+  .yt-sav{width:24px;height:24px;border-radius:50%;flex:none;background:linear-gradient(135deg,#78D8EE,#A8B4FF)}
+  .yt-sdesc{font-size:12px;color:#aaa;line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  @media (max-width:760px){ .yt-sthumb{width:240px} }
+
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= 操作パネル ================= -->
+  <aside class="side">
+    <div class="brand"><h1>ビルドカード</h1><span>maker</span></div>
+    <p class="lede">キャラと武器を名前で選ぶだけ。凸・精錬・レベルを決めて、そのままサムネに置ける PNG が出ます。</p>
+
+    <div class="group" style="border-top:none;padding-top:0;margin-top:0">
+      <h2>カード全体</h2>
+      <div class="field">
+        <label for="title">見出し</label>
+        <input type="text" id="title" value="現在の編成" placeholder="空欄でもOK">
+      </div>
+      <div class="field">
+        <label for="size">書き出しサイズ</label>
+        <select id="size">
+          <option value="1920x1080">1920 × 1080（YouTube サムネ）</option>
+          <option value="1280x720">1280 × 720</option>
+          <option value="1200x675">1200 × 675（X 投稿）</option>
+          <option value="1080x1080">1080 × 1080（正方形）</option>
+          <option value="1080x1350">1080 × 1350（縦長）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="bg">背景</label>
+        <select id="bg">
+          <option value="night">夜天（濃紺グラデ）</option>
+          <option value="ember">残照（紫〜橙）</option>
+          <option value="paper">白磁（明るめ）</option>
+          <option value="ink">墨（単色）</option>
+          <option value="clear">透過（イラストに重ねる用）</option>
+        </select>
+      </div>
+      <label class="check"><input type="checkbox" id="hideZero" checked><span>凸が 0 のときは数字を隠す</span></label>
+      <label class="check"><input type="checkbox" id="showEnemy"><span>敵の画像を左側に表示する</span></label>
+      <label class="check"><input type="checkbox" id="showArtifact"><span>聖遺物を武器の下に表示する</span></label>
+      <div id="enemyPick" hidden></div>
+    </div>
+
+    <div class="group">
+      <h2>枠の数</h2>
+      <div class="seg" id="countSeg"></div>
+    </div>
+
+    <div class="group">
+      <h2>編成</h2>
+      <div id="slots"></div>
+    </div>
+  </aside>
+
+  <!-- ================= プレビュー ================= -->
+  <main class="stage">
+    <div class="canvas-hold">
+      <canvas id="cv" width="1920" height="1080"></canvas>
+    </div>
+    <div class="bar">
+      <button class="ghost" id="previewBtn">サムネプレビュー</button>
+      <span style="flex:1"></span>
+      <button class="ghost" id="copyBtn">画像をコピー</button>
+      <button class="cta" id="saveBtn">PNG を保存</button>
+    </div>
+  </main>
+</div>
+
+<!-- YouTube サムネプレビュー -->
+<div class="modal" id="ytModal" hidden>
+  <div class="modal-bg" id="ytBg"></div>
+  <div class="modal-card">
+    <button class="modal-x" id="ytClose" aria-label="閉じる">×</button>
+    <h3>YouTube サムネイル プレビュー</h3>
+    <p class="modal-sub">検索結果・関連動画に並んだときの見え方の目安です。</p>
+    <p class="yt-sech">検索結果での見え方</p>
+    <div class="yt-search" id="ytSearch"></div>
+    <p class="yt-sech">関連動画での見え方</p>
+    <div class="yt-list" id="ytList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 幻想シアターと同じ構造のフォルダに置く前提。characters / weapons / icons.elements を読み込みます -->
+<script>
+// master-data.js を毎回読み直す（ブラウザのキャッシュで古いデータが残るのを防ぐ）
+var _v=Date.now();
+document.write('<scr'+'ipt src="./master-data.js?v='+_v+'"><\/scr'+'ipt>');
+document.write('<scr'+'ipt src="./card-data.js?v='+_v+'"><\/scr'+'ipt>');
+</script>
+<script>
+/* ============================================================
+   データ読み込み
+   ============================================================ */
+const DATA = window.GENGEKI_MASTER_DATA || {};
+const CHARS = (DATA.characters || []).filter(c => c && c.name);
+const CARD = window.CARD_DATA || {};           // card-data.js（武器・聖遺物・敵・読みがな）
+const WEAPONS = CARD.weapons || [];
+const ENEMIES = CARD.enemies || [];
+const ARTIFACTS = CARD.artifacts || [];
+const READINGS = CARD.readings || {};
+// 読みがなは master-data.js（Notion の Reading 列）を優先し、無ければ card-data.js で補う
+const charReading = c => c.reading || READINGS[c.id] || "";
+const ELEM_ICON = (DATA.icons && DATA.icons.elements) || {};
+const ELEM_LIST = DATA.elements || ["炎","水","雷","氷","風","岩","草"];
+
+const ELEMENTS = {
+  "炎":"#FF7A4D","水":"#4FB6FF","雷":"#B98BFF","氷":"#8FE3F5",
+  "風":"#5FE0A8","岩":"#F0B93E","草":"#93C93B"
+};
+
+// レア度表が入るまでの暫定フォールバック（★4キャラの id）。master-data 側に rarity があればそちら優先。
+const FOURSTAR = new Set([
+  "amber","xiangling","bennett","xinyan","thoma","chevreuse","gamin","yanfei","nicole",
+  "barbara","xingqiu","candace","chongyun","rosaria","layla","mika","freminet","diona","charlotte","kaeya",
+  "iansan","ororon","sethos","dori","kukishinobu","kujousara","fischl","beidou","razor","lisa",
+  "lynette","faruzan","shikanoinheizou","sayu","sucrose","kachina","yunjin","gorou","noelle","ningguang",
+  "kirara","kaveh","yaoyao","collei"
+]);
+const charRarity = c => c.rarity || (FOURSTAR.has(c.id) ? 4 : 5);
+
+/* ============================================================
+   状態
+   ============================================================ */
+function newSlot(){
+  return {
+    char:null, charImg:null, elem:"", cons:0, level:90, rarityOverride:null,
+    cz:1, cox:0, coy:0,
+    weapon:null, wpImg:null, refine:1, wrarityOverride:null,
+    wz:1, wox:0, woy:0,
+    artifact:null, afImg:null
+  };
+}
+const S = {
+  title:"現在の編成", w:1920, h:1080, bg:"night", hideZero:true,
+  enemy:null, enemyImg:null, showEnemy:false, showArtifact:false,
+  slots:[newSlot(),newSlot(),newSlot(),newSlot()], count:4
+};
+
+const slotElem   = s => s.char ? (s.char.isTraveler ? (s.elem || s.char.element) : s.char.element) : (s.elem || "");
+const slotCharR  = s => s.rarityOverride  ?? (s.char   ? charRarity(s.char)        : 5);
+const slotWpR    = s => s.wrarityOverride ?? (s.weapon ? (s.weapon.rarity || 5)    : 5);
+
+const cv = document.getElementById("cv");
+const ctx = cv.getContext("2d");
+let hits = [];
+let drag = null;
+
+/* ============================================================
+   画像ロード（キャッシュ）
+   ============================================================ */
+const imgCache = new Map();
+function loadImg(src, cb){
+  if(!src){ cb && cb(null); return; }
+  let e = imgCache.get(src);
+  if(e){
+    if(e.ok) cb && cb(e.img);
+    else if(cb) e.cbs.push(cb);
+    return;
+  }
+  const img = new Image();
+  e = { img, ok:false, cbs: cb ? [cb] : [] };
+  imgCache.set(src, e);
+  img.onload  = ()=>{ e.ok=true; e.cbs.forEach(f=>f(img)); e.cbs=[]; draw(); };
+  img.onerror = ()=>{
+    // macOS で作られたファイル名は濁点が分解形(NFD)のことがある。
+    // 1度だけ NFD 表記で読み直す（例: 「夜を紡ぐ天鏡.webp」）
+    const alt = src.normalize && src.normalize("NFD");
+    if(alt && alt!==src && !e.retried){ e.retried=true; img.src=alt; return; }
+    e.cbs.forEach(f=>f(null)); e.cbs=[];
+  };
+  img.src = src;
+}
+function cachedReady(src){ const e = imgCache.get(src); return e && e.ok ? e.img : null; }
+
+function readImage(file, cb){
+  const r = new FileReader();
+  r.onload = ()=>{ const img = new Image(); img.onload = ()=>cb(img); img.src = r.result; };
+  r.readAsDataURL(file);
+}
+
+/* ============================================================
+   選択
+   ============================================================ */
+function selectChar(i, c){
+  const s = S.slots[i];
+  s.char = c; s.charImg = null; s.rarityOverride = null;
+  s.elem = c.isTraveler ? c.element : "";
+  s.level = c.level || 90; s.cz=1; s.cox=0; s.coy=0;
+  // 武器種が合わなくなったら武器を外す
+  const type = c.tags && c.tags.weapon;
+  if(s.weapon && type && s.weapon.type && s.weapon.type !== type){ s.weapon=null; s.wpImg=null; }
+  loadImg(c.image, img=>{ s.charImg = img; draw(); });
+  buildSlots(); draw();
+}
+function selectEnemy(e){
+  S.enemy=e; S.enemyImg=null;
+  if(e) loadImg(e.image, img=>{ S.enemyImg=img; draw(); });
+  buildSlots(); draw();
+}
+function selectArtifact(i, a){
+  const s=S.slots[i];
+  s.artifact=a; s.afImg=null;
+  if(a) loadImg(a.image, img=>{ s.afImg=img; draw(); });
+  buildSlots(); draw();
+}
+function selectWeapon(i, w){
+  const s = S.slots[i];
+  s.weapon = w; s.wpImg = null; s.refine = 1; s.wrarityOverride = null;
+  s.wz=1; s.wox=0; s.woy=0;
+  loadImg(w.image, img=>{ s.wpImg = img; draw(); });
+  buildSlots(); draw();
+}
+
+/* ============================================================
+   UI 構築
+   ============================================================ */
+const seg = document.getElementById("countSeg");
+[1,2,3,4].forEach(n=>{
+  const b = document.createElement("button");
+  b.textContent = n + "人";
+  b.setAttribute("aria-pressed", n===S.count);
+  b.onclick = ()=>{
+    S.count = n;
+    [...seg.children].forEach((c,i)=>c.setAttribute("aria-pressed", i+1===n));
+    buildSlots(); draw();
+  };
+  seg.appendChild(b);
+});
+
+function buildSlots(){
+  const host = document.getElementById("slots");
+  host.innerHTML = "";
+  for(let i=0;i<S.count;i++) host.appendChild(slotUI(i));
+}
+
+function sectionLabel(txt){ const d=document.createElement("div"); d.className="seclabel"; d.textContent=txt; return d; }
+function labeled(txt, node){
+  const d=document.createElement("div"); d.className="lb";
+  const l=document.createElement("label"); l.textContent=txt;
+  d.append(l,node); return d;
+}
+// ★5=金 / ★4=紫 / ★3=青 の色付きラベル
+function starTag(r){
+  const n = r>=5 ? 5 : (r>=4 ? 4 : 3);
+  return `<i class="star s${n}">★${n}</i>`;
+}
+function resultHTML(src,name,meta){
+  return `<div class="res-th" style="background-image:url('${src||""}')"></div>`+
+         `<div class="res-tx"><b>${name}</b><span>${meta||""}</span></div>`;
+}
+function selectedChip(src,name,meta,onChange){
+  const d=document.createElement("div"); d.className="chip";
+  d.innerHTML = `<div class="chip-th" style="background-image:url('${src||""}')"></div>`+
+                `<div class="chip-tx"><b>${name}</b><span>${meta||""}</span></div>`;
+  const b=document.createElement("button"); b.className="mini"; b.textContent="変更"; b.onclick=onChange;
+  d.appendChild(b); return d;
+}
+function makeSearch(opts){
+  const wrap=document.createElement("div"); wrap.className="search";
+  const input=document.createElement("input"); input.type="text"; input.placeholder=opts.placeholder;
+  const res=document.createElement("div"); res.className="results"; res.hidden=true;
+  wrap.append(input,res);
+  function render(){
+    const q=input.value.trim();
+    const list=opts.list().filter(it=> !q || opts.text(it).includes(q));
+    res.innerHTML="";
+    if(list.length===0){
+      const m=document.createElement("div"); m.className="result muted";
+      m.textContent = opts.empty || "該当なし"; res.appendChild(m); res.hidden=false; return;
+    }
+    list.forEach(it=>{
+      const r=document.createElement("div"); r.className="result"; r.innerHTML=opts.item(it);
+      r.onmousedown = e=>{ e.preventDefault(); opts.pick(it); };
+      res.appendChild(r);
+    });
+    res.hidden=false;
+  }
+  input.oninput=render; input.onfocus=render;
+  input.onblur=()=>setTimeout(()=>res.hidden=true,120);
+  return wrap;
+}
+function stepper(val,min,max,fmt,onchange){
+  const wrap=document.createElement("div"); wrap.className="stepper";
+  const dec=document.createElement("button"); dec.textContent="−";
+  const v=document.createElement("span"); v.className="val"; v.textContent=fmt(val);
+  const inc=document.createElement("button"); inc.textContent="＋";
+  let cur=val;
+  dec.onclick=()=>{ cur=Math.max(min,cur-1); v.textContent=fmt(cur); onchange(cur); };
+  inc.onclick=()=>{ cur=Math.min(max,cur+1); v.textContent=fmt(cur); onchange(cur); };
+  wrap.append(dec,v,inc); return wrap;
+}
+// 実際に存在するレベル：1〜90 と 95・100
+const LEVELS=(()=>{ const a=[100,95]; for(let v=90;v>=1;v--) a.push(v); return a; })();
+function levelSelect(s){
+  const sel=document.createElement("select");
+  LEVELS.forEach(v=>{ const o=document.createElement("option"); o.value=v; o.textContent="Lv."+v; sel.appendChild(o); });
+  sel.value=String(s.level);
+  sel.onchange=()=>{ s.level=+sel.value; draw(); };
+  return sel;
+}
+function elemSelect(s){
+  const sel=document.createElement("select");
+  ELEM_LIST.forEach(e=>{ const o=document.createElement("option"); o.value=e; o.textContent=e; sel.appendChild(o); });
+  sel.value=slotElem(s);
+  sel.onchange=()=>{ s.elem=sel.value; draw(); };
+  return sel;
+}
+function manualUploads(i){
+  const s=S.slots[i];
+  const d=document.createElement("details"); d.className="manual";
+  const sum=document.createElement("summary"); sum.textContent="画像を手動で差し替え"; d.appendChild(sum);
+  const mk=(txt,kind)=>{
+    const f=document.createElement("label"); f.className="mfile";
+    const sp=document.createElement("span"); sp.textContent=txt; f.appendChild(sp);
+    const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+    inp.onchange=()=>{ const file=inp.files[0]; if(!file) return; readImage(file,img=>{
+      if(kind==="char"){ s.charImg=img; s.cz=1; s.cox=0; s.coy=0; }
+      else if(kind==="af"){ s.afImg=img; }
+      else { s.wpImg=img; s.wz=1; s.wox=0; s.woy=0; }
+      draw();
+    }); };
+    f.appendChild(inp); return f;
+  };
+  d.append(mk("キャラ画像","char"), mk("武器画像","wp"));
+  if(S.showArtifact) d.appendChild(mk("聖遺物画像","af"));
+  return d;
+}
+
+// 敵の画像を手動で差し替え
+function enemyManualUpload(){
+  const d=document.createElement("details"); d.className="manual";
+  const sum=document.createElement("summary"); sum.textContent="画像を手動で差し替え"; d.appendChild(sum);
+  const f=document.createElement("label"); f.className="mfile";
+  const sp=document.createElement("span"); sp.textContent="敵画像"; f.appendChild(sp);
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+  inp.onchange=()=>{ const file=inp.files[0]; if(!file) return; readImage(file,img=>{ S.enemyImg=img; draw(); }); };
+  f.appendChild(inp); d.appendChild(f);
+  return d;
+}
+
+function slotUI(i){
+  const s=S.slots[i];
+  const el=document.createElement("div"); el.className="slot"; el.dataset.slot=i;
+
+  const head=document.createElement("header");
+  head.innerHTML=`<b>枠 ${i+1}</b><span class="sp"></span>`;
+  const clr=document.createElement("button"); clr.className="mini"; clr.textContent="空にする";
+  clr.onclick=()=>{ S.slots[i]=newSlot(); buildSlots(); draw(); };
+  head.appendChild(clr); el.appendChild(head);
+
+  // ---- キャラ ----
+  el.appendChild(sectionLabel("キャラクター"));
+  if(s.char){
+    el.appendChild(selectedChip(s.char.image, s.char.name, slotElem(s)+" ・ "+starTag(slotCharR(s)),
+      ()=>{ s.char=null; s.charImg=null; buildSlots(); draw(); }));
+    const row=document.createElement("div"); row.className="prow";
+    row.appendChild(labeled("凸", stepper(s.cons,0,6,v=>v+"凸",v=>{s.cons=v;draw();})));
+    row.appendChild(labeled("Lv.", levelSelect(s)));
+    el.appendChild(row);
+    if(s.char.isTraveler) el.appendChild(labeled("元素（主人公）", elemSelect(s)));
+  } else {
+    const sc=makeSearch({
+      placeholder:"キャラ名で検索",
+      list:()=>CHARS, text:c=>c.name+" "+charReading(c)+" "+(c.id||""),
+      item:c=>resultHTML(c.image,c.name,c.element+" ・ "+starTag(charRarity(c))),
+      pick:c=>selectChar(i,c),
+      empty: CHARS.length? "該当なし" : "キャラデータ未読み込み"
+    });
+    sc.dataset.kind="char"; el.appendChild(sc);
+  }
+
+  // ---- 武器 ----
+  el.appendChild(sectionLabel("武器"));
+  const type = s.char && s.char.tags ? s.char.tags.weapon : null;
+  if(s.weapon){
+    el.appendChild(selectedChip(s.weapon.image, s.weapon.name,
+      (s.weapon.type||"")+" ・ "+starTag(slotWpR(s)),
+      ()=>{ s.weapon=null; s.wpImg=null; buildSlots(); draw(); }));
+    const row=document.createElement("div"); row.className="prow";
+    row.appendChild(labeled("精錬", stepper(s.refine,1,5,v=>"R"+v,v=>{s.refine=v;draw();})));
+    el.appendChild(row);
+  } else {
+    const charName = s.char ? s.char.name : null;
+    const isMotif = w => !!charName && w.motif===charName;
+    const sw=makeSearch({
+      placeholder: type ? (type+"を名前で検索") : "武器名で検索",
+      list:()=> WEAPONS.filter(w=> !type || w.type===type)
+                       // モチーフ武器を最優先、次にレア度の高い順
+                       .sort((a,b)=> (isMotif(b)-isMotif(a)) || ((b.rarity||0)-(a.rarity||0))),
+      text:w=>w.name+" "+(w.reading||""),
+      item:w=>resultHTML(w.image, w.name,
+              starTag(w.rarity||5)+" ・ "+(w.type||"")+(isMotif(w)?' ・ <i class="motif">モチーフ</i>':"")),
+      pick:w=>selectWeapon(i,w),
+      empty: WEAPONS.length ? "該当なし（下の「手動で差し替え」から画像を入れられます）"
+                            : "武器データ未登録（手動で差し替えを使ってください）"
+    });
+    sw.dataset.kind="wp"; el.appendChild(sw);
+  }
+
+  // ---- 聖遺物（表示ONのときだけ） ----
+  if(S.showArtifact){
+    el.appendChild(sectionLabel("聖遺物"));
+    if(s.artifact){
+      el.appendChild(selectedChip(s.artifact.image, s.artifact.name, "",
+        ()=>{ s.artifact=null; s.afImg=null; buildSlots(); draw(); }));
+    } else {
+      const sa=makeSearch({
+        placeholder:"聖遺物セット名で検索",
+        list:()=>ARTIFACTS, text:a=>a.name,
+        item:a=>resultHTML(a.image,a.name,""),
+        pick:a=>selectArtifact(i,a),
+        empty: ARTIFACTS.length? "該当なし" : "聖遺物データ未登録"
+      });
+      sa.dataset.kind="af"; el.appendChild(sa);
+    }
+  }
+
+  el.appendChild(manualUploads(i));
+  return el;
+}
+
+// 全体設定
+document.getElementById("title").oninput  = e=>{ S.title=e.target.value; draw(); };
+document.getElementById("bg").onchange    = e=>{ S.bg=e.target.value; draw(); };
+document.getElementById("hideZero").onchange = e=>{ S.hideZero=e.target.checked; draw(); };
+document.getElementById("showEnemy").onchange = e=>{
+  S.showEnemy=e.target.checked; document.getElementById("enemyPick").hidden=!S.showEnemy;
+  buildEnemyPick(); draw();
+};
+document.getElementById("showArtifact").onchange = e=>{ S.showArtifact=e.target.checked; buildSlots(); draw(); };
+
+// 敵の選択UI
+function buildEnemyPick(){
+  const host=document.getElementById("enemyPick"); host.innerHTML="";
+  if(!S.showEnemy) return;
+  host.appendChild(sectionLabel("敵"));
+  if(S.enemy){
+    host.appendChild(selectedChip(S.enemy.image, S.enemy.name, "",
+      ()=>{ S.enemy=null; S.enemyImg=null; buildEnemyPick(); draw(); }));
+  } else {
+    const se=makeSearch({
+      placeholder:"敵の名前で検索",
+      list:()=>ENEMIES, text:e=>e.name,
+      item:e=>resultHTML(e.image,e.name,""),
+      pick:e=>{ selectEnemy(e); buildEnemyPick(); },
+      empty: ENEMIES.length? "該当なし" : "敵データ未読み込み"
+    });
+    se.dataset.kind="enemy"; host.appendChild(se);
+  }
+  host.appendChild(enemyManualUpload());
+}
+document.getElementById("size").onchange  = e=>{
+  const [w,h]=e.target.value.split("x").map(Number);
+  S.w=w; S.h=h; cv.width=w; cv.height=h; draw();
+};
+
+/* ============================================================
+   描画ヘルパ
+   ============================================================ */
+const F = '"CardFont","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif';
+
+function rr(x,y,w,h,r){
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(x,y,w,h,r);
+  else {
+    ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+}
+// 角ごとに丸みを指定できる矩形  radii=[左上,右上,右下,左下]
+function rrc(x,y,w,h,radii){
+  const [tl,tr,br,bl]=radii;
+  ctx.beginPath();
+  if(ctx.roundRect){ ctx.roundRect(x,y,w,h,radii); return; }
+  ctx.moveTo(x+tl,y);
+  ctx.lineTo(x+w-tr,y); ctx.arcTo(x+w,y,x+w,y+tr,tr);
+  ctx.lineTo(x+w,y+h-br); ctx.arcTo(x+w,y+h,x+w-br,y+h,br);
+  ctx.lineTo(x+bl,y+h); ctx.arcTo(x,y+h,x,y+h-bl,bl);
+  ctx.lineTo(x,y+tl); ctx.arcTo(x,y,x+tl,y,tl);
+  ctx.closePath();
+}
+function fitText(text,maxW,startPx,weight){
+  let px=startPx;
+  while(px>10){ ctx.font=`${weight} ${px}px ${F}`; if(ctx.measureText(text).width<=maxW) break; px-=1; }
+  return px;
+}
+// 実際の字面（グリフの上端〜下端）の中心を cy に合わせて描く。
+// textBaseline:"middle" はフォントのメトリクス依存でズレるため、こちらを使う。
+function drawTextCentered(text,cx,cy){
+  ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  const m=ctx.measureText(text);
+  const a=m.actualBoundingBoxAscent||0, d=m.actualBoundingBoxDescent||0;
+  ctx.fillText(text, cx, cy+(a-d)/2);
+}
+function centerText(text,cx,y,maxW,startPx,weight,color){
+  if(!text) return;
+  fitText(text,maxW,startPx,weight);
+  ctx.fillStyle=color;
+  drawTextCentered(text,cx,y);
+}
+function fillRarity(x,y,w,h,rarity){
+  const g=ctx.createLinearGradient(x,y,x,y+h);
+  if(rarity>=5){ g.addColorStop(0,"#8A6733"); g.addColorStop(.55,"#BC934C"); g.addColorStop(1,"#E9C577"); }
+  else if(rarity>=4){ g.addColorStop(0,"#463C69"); g.addColorStop(.55,"#6B5D93"); g.addColorStop(1,"#9787BA"); }
+  else { g.addColorStop(0,"#3B7C9E"); g.addColorStop(.55,"#63A9C9"); g.addColorStop(1,"#9AD2E6"); }
+  ctx.fillStyle=g; ctx.fillRect(x,y,w,h);
+}
+function coverInto(img,x,y,w,h,z,ox,oy){
+  const k=Math.max(w/img.width,h/img.height)*z;
+  const dw=img.width*k, dh=img.height*k;
+  ctx.drawImage(img, x+(w-dw)/2+ox*w, y+(h-dh)/2+oy*h, dw, dh);
+}
+function containInto(img,x,y,w,h,pad){
+  const s=Math.min((w*(1-pad))/img.width,(h*(1-pad))/img.height);
+  const dw=img.width*s, dh=img.height*s;
+  ctx.drawImage(img, x+(w-dw)/2, y+(h-dh)/2, dw, dh);
+}
+
+// 数字バッジ  hi:true=黄背景/橙字, false=黒背景/白字（背景は約80%不透明）
+function roundBadge(bx,by,side,num,hi,scale){
+  rr(bx,by,side,side,side*0.28);
+  ctx.fillStyle = hi ? "rgba(245,200,66,.8)" : "rgba(20,20,20,.8)"; ctx.fill();
+  ctx.font=`800 ${Math.round(side*0.56*(scale||1))}px ${F}`;
+  ctx.fillStyle = hi ? "#C4561A" : "#FFFFFF";
+  drawTextCentered(String(num), bx+side/2, by+side/2);
+}
+// 元素アイコン（左上・背景なし・影付き・大きめ）
+function elementBadge(elem,x,y,w,h){
+  if(!elem) return;
+  const side=Math.min(w,h)*0.24, m=w*0.025, bx=x+m, by=y+m;
+  const ic=ELEM_ICON[elem];
+  const ready = ic ? cachedReady(ic) : null;
+  if(ic && !ready) loadImg(ic,null);
+  ctx.save();
+  ctx.shadowColor="rgba(0,0,0,.6)"; ctx.shadowBlur=side*0.22; ctx.shadowOffsetY=side*0.06;
+  if(ready){ ctx.drawImage(ready, bx, by, side, side); }
+  else { ctx.font=`700 ${Math.round(side*0.72)}px ${F}`; ctx.fillStyle=(ELEMENTS[elem]||"#fff"); ctx.textAlign="left"; ctx.textBaseline="top"; ctx.fillText(elem, bx, by); }
+  ctx.restore();
+}
+// レベル帯（カード下半分。上辺は角丸なし＝アートと隙間なく連結、下辺だけ角丸）
+function levelPlate(text,x,artBottom,w,r,color){
+  const ph=w*PLATE_H_R, cx=x+w/2;
+  rrc(x, artBottom, w, ph, [0,0,r,r]);
+  ctx.fillStyle="#EDE7DC"; ctx.fill();
+  fitText(text, w*0.86, Math.round(ph*0.66), "700");
+  ctx.fillStyle=color||"#3A3B45";
+  drawTextCentered(text, cx, artBottom+ph/2);
+  return artBottom;
+}
+
+function theme(){
+  const light = S.bg==="paper";
+  return { light, ink: light?"#1A1B2E":"#F1EFFA", gold: light?"#B08A34":"#E6C583" };
+}
+function paintBG(){
+  ctx.clearRect(0,0,S.w,S.h);
+  if(S.bg==="clear") return;
+  if(S.bg==="ink"){ ctx.fillStyle="#101223"; ctx.fillRect(0,0,S.w,S.h); return; }
+  let g=ctx.createLinearGradient(0,0,S.w,S.h);
+  if(S.bg==="night"){ g.addColorStop(0,"#131A38"); g.addColorStop(.55,"#0D1128"); g.addColorStop(1,"#1A1436"); }
+  else if(S.bg==="ember"){ g.addColorStop(0,"#2A1740"); g.addColorStop(.6,"#3A1C36"); g.addColorStop(1,"#4A2A22"); }
+  else { g.addColorStop(0,"#F6F4EF"); g.addColorStop(1,"#E7E4F0"); }
+  ctx.fillStyle=g; ctx.fillRect(0,0,S.w,S.h);
+  if(S.bg!=="paper"){
+    const r=ctx.createRadialGradient(S.w*.5,S.h*.42,0,S.w*.5,S.h*.42,S.w*.55);
+    r.addColorStop(0,"rgba(120,216,238,.10)"); r.addColorStop(1,"rgba(120,216,238,0)");
+    ctx.fillStyle=r; ctx.fillRect(0,0,S.w,S.h);
+  }
+}
+
+/* ============================================================
+   メイン描画：上段=キャラ（アート枠＋Lvプレート）/ 下段=武器（正方形）
+   ============================================================ */
+const ART_ASPECT=1.0;    // アート部分の縦横比（1:1）
+const PLATE_H_R=0.24;    // Lv帯の高さ（×カード幅）
+const BADGE_R=0.18;      // 凸／精錬バッジの一辺（×カード幅・キャラと武器で共通）
+const BADGE_M=0.05;      // バッジの余白（×カード幅）
+const NUM_SCALE=1.35;    // 凸／精錬バッジの数字の拡大倍率（キャラ・武器共通）
+const ENEMY_W=1.60;      // 敵カードの幅（×カード幅）
+const ARTIFACT_H=0.62;   // 聖遺物カードの高さ（×カード幅）
+
+function draw(){
+  const t=theme(); hits=[]; paintBG();
+
+  const n=S.count, cols=n;
+  const pad=S.w*0.04;
+  const headH= S.title ? S.h*0.14 : S.h*0.04;
+
+  if(S.title) centerText(S.title, S.w/2, headH*0.5, S.w-pad*2, Math.round(S.h*0.098), "700", t.ink);
+
+  const areaY=headH, areaH=S.h-headH-S.h*0.04;
+  const gapX=S.w*0.016, gapY=S.h*0.024;
+
+  // 1列あたりの高さ（アート＋Lv帯 ／ 武器 ／ 任意で聖遺物）
+  const charBlock=ART_ASPECT + PLATE_H_R;
+  let stack=charBlock + 1;                       // キャラ + 武器(正方形)
+  if(S.showArtifact) stack += ARTIFACT_H;        // + 聖遺物
+  const gapsY = S.showArtifact ? gapY*2 : gapY;
+
+  // 敵カラムぶんを引いた幅で列幅を決める
+  const enemyUnits = S.showEnemy ? ENEMY_W : 0;  // 敵の幅＝colW×ENEMY_W
+  const gapCount   = S.showEnemy ? cols : cols-1;
+  const availW = S.w - pad*2 - gapX*gapCount;
+  const colWByW = availW/(cols + enemyUnits);
+  const colWByH = (areaH - gapsY)/stack;
+  const colW = Math.min(colWByW, colWByH);
+
+  const charH=colW*charBlock;
+  const stackH=colW*stack + gapsY;
+  const enemyW=colW*ENEMY_W;
+  const gridW=colW*cols + gapX*(cols-1) + (S.showEnemy ? enemyW+gapX : 0);
+  const startX=(S.w-gridW)/2, startY=areaY+(areaH-stackH)/2;
+
+  let x0=startX;
+  if(S.showEnemy){
+    drawEnemyCard(startX, startY, enemyW, stackH);
+    x0 = startX + enemyW + gapX;
+  }
+
+  for(let i=0;i<n;i++){
+    const x=x0+i*(colW+gapX);
+    drawCharCard(S.slots[i], i, x, startY, colW);
+    const wy=startY+charH+gapY;
+    drawWeaponCard(S.slots[i], i, x, wy, colW, colW);
+    if(S.showArtifact) drawArtifactCard(S.slots[i], i, x, wy+colW+gapY, colW, colW*ARTIFACT_H);
+  }
+}
+
+// 敵カード（左側・縦長）
+function drawEnemyCard(x, y, w, h){
+  const r=w*0.06;
+  ctx.save(); rrc(x,y,w,h,[r,r,r,r]); ctx.clip();
+  const g=ctx.createLinearGradient(x,y,x,y+h);
+  g.addColorStop(0,"#3A2036"); g.addColorStop(1,"#1C1430");
+  ctx.fillStyle=g; ctx.fillRect(x,y,w,h);
+  if(S.enemyImg) coverInto(S.enemyImg, x,y,w,h, 1, 0, 0);
+  ctx.restore();
+  if(!S.enemyImg) centerText(S.enemy?"画像なし":"敵を選択", x+w/2, y+h*0.5, w*0.82, Math.round(w*0.09), "600", "rgba(255,255,255,.85)");
+  ctx.strokeStyle="rgba(0,0,0,.30)"; ctx.lineWidth=Math.max(2,w*0.007); rrc(x,y,w,h,[r,r,r,r]); ctx.stroke();
+  hits.push({x,y,w,h,slot:-1,kind:"enemy"});
+}
+
+// 聖遺物カード（キャラ列の3段目）
+function drawArtifactCard(s, idx, x, y, w, h){
+  const r=w*0.08;
+  ctx.save(); rrc(x,y,w,h,[r,r,r,r]); ctx.clip();
+  const g=ctx.createLinearGradient(x,y,x,y+h);
+  g.addColorStop(0,"#2A2742"); g.addColorStop(1,"#1A1830");
+  ctx.fillStyle=g; ctx.fillRect(x,y,w,h);
+  if(s.afImg) containInto(s.afImg, x,y,w,h, 0.16);
+  ctx.restore();
+  if(!s.afImg) centerText(s.artifact? s.artifact.name : "聖遺物", x+w/2, y+h*0.5, w*0.84, Math.round(w*0.11), "600", "rgba(255,255,255,.85)");
+  ctx.strokeStyle="rgba(0,0,0,.30)"; ctx.lineWidth=Math.max(2,w*0.009); rrc(x,y,w,h,[r,r,r,r]); ctx.stroke();
+  hits.push({x,y,w,h,slot:idx,kind:"af"});
+}
+
+function drawCharCard(s, idx, x, y, w){
+  const artH=w*ART_ASPECT, artBottom=y+artH;
+  const cardH=artH + w*PLATE_H_R;
+  const r=w*0.08, rarity=slotCharR(s), elem=slotElem(s);
+
+  // カード全体の影
+  ctx.save();
+  ctx.shadowColor="rgba(0,0,0,.38)"; ctx.shadowBlur=w*0.05; ctx.shadowOffsetY=w*0.014;
+  rrc(x,y,w,cardH,[r,r,r,r]); ctx.fillStyle="#EDE7DC"; ctx.fill();
+  ctx.restore();
+
+  // アート（上side だけ角丸、下辺はフラットに切る）
+  ctx.save(); rrc(x,y,w,artH,[r,r,0,0]); ctx.clip();
+  fillRarity(x,y,w,artH,rarity);
+  if(s.charImg) coverInto(s.charImg, x,y,w,artH, s.cz, s.cox, s.coy);
+  ctx.restore();
+  if(!s.charImg) centerText(s.char?"画像なし":"キャラを選択", x+w/2, y+artH*0.5, w*0.82, Math.round(w*0.11), "600", "rgba(255,255,255,.85)");
+
+  elementBadge(elem, x, y, w, artH);
+
+  // Lv帯（下辺だけ角丸。アートと隙間なく連結）。95/100 は文字色を変える
+  const lvColor = (+s.level===100 || +s.level===95) ? "rgb(142,94,97)" : "#3A3B45";
+  levelPlate("Lv."+(s.level||""), x, artBottom, w, r, lvColor);
+
+  // 凸バッジ（アート内の左下。Lv帯には重ねない）
+  if(!(s.cons===0 && S.hideZero)){
+    const side=w*BADGE_R;
+    roundBadge(x+w*BADGE_M, artBottom - side - w*BADGE_M, side, s.cons, s.cons===6, NUM_SCALE);
+  }
+
+  // カード全体の外枠
+  ctx.strokeStyle="rgba(0,0,0,.30)"; ctx.lineWidth=Math.max(2,w*0.009);
+  rrc(x,y,w,cardH,[r,r,r,r]); ctx.stroke();
+
+  hits.push({x, y, w, h:cardH, slot:idx, kind:"char"});
+}
+
+function drawWeaponCard(s, idx, x, y, w, h){
+  const r=w*0.10, rarity=slotWpR(s);
+
+  ctx.save(); rr(x,y,w,h,r); ctx.clip();
+  fillRarity(x,y,w,h,rarity);
+  if(s.wpImg) containInto(s.wpImg, x,y,w,h, 0.14);
+  ctx.restore();
+
+  if(!s.wpImg) centerText(s.weapon?"画像なし":"武器を選択", x+w/2, y+h*0.5, w*0.82, Math.round(w*0.11), "600", "rgba(255,255,255,.85)");
+
+  { const side=w*BADGE_R; roundBadge(x+w*BADGE_M, y+w*BADGE_M, side, s.refine, s.refine===5, NUM_SCALE); }
+
+  ctx.strokeStyle="rgba(0,0,0,.32)"; ctx.lineWidth=Math.max(2,w*0.012); rr(x,y,w,h,r); ctx.stroke();
+  hits.push({x,y,w,h,slot:idx,kind:"wp"});
+}
+
+/* ============================================================
+   カードをクリック → 左パネルの該当枠へスクロール
+   ============================================================ */
+function toCanvas(e){
+  const b=cv.getBoundingClientRect();
+  return { x:(e.clientX-b.left)*(cv.width/b.width), y:(e.clientY-b.top)*(cv.height/b.height) };
+}
+function hitAt(p){
+  for(let i=hits.length-1;i>=0;i--){
+    const h=hits[i];
+    if(p.x>=h.x && p.x<=h.x+h.w && p.y>=h.y && p.y<=h.y+h.h) return h;
+  }
+  return null;
+}
+// 左パネルの該当枠を中央に寄せる
+function scrollSlotIntoView(el){
+  const side=document.querySelector(".side");
+  const max=side.scrollHeight-side.clientHeight;
+  const top=Math.max(0, Math.min(max,
+    side.scrollTop + (el.getBoundingClientRect().top - side.getBoundingClientRect().top)
+    - Math.max(0,(side.clientHeight-el.offsetHeight)/2)));
+  const from=side.scrollTop;
+  side.scrollTo({top, behavior:"smooth"});
+  // スムーズスクロールが効かない環境向けのフォールバック
+  setTimeout(()=>{
+    if(Math.abs(side.scrollTop-from)<2 && Math.abs(top-from)>2) side.scrollTop=top;
+  }, 250);
+}
+cv.addEventListener("click", e=>{
+  const h=hitAt(toCanvas(e)); if(!h) return;
+  if(h.slot===-1){                       // 敵カード
+    const ep=document.getElementById("enemyPick");
+    if(ep && !ep.hidden){
+      scrollSlotIntoView(ep);
+      const ei=ep.querySelector(".search input");
+      if(ei) setTimeout(()=>ei.focus({preventScroll:true}),260);
+    }
+    return;
+  }
+  const el=document.querySelector(`.slot[data-slot="${h.slot}"]`); if(!el) return;
+  scrollSlotIntoView(el);
+  document.querySelectorAll(".slot.focus").forEach(n=>n.classList.remove("focus"));
+  el.classList.add("focus");
+  clearTimeout(el._ft); el._ft=setTimeout(()=>el.classList.remove("focus"), 1600);
+  // 該当セクション（キャラ／武器）の検索欄が出ていればフォーカス
+  const inp=el.querySelector(`.search[data-kind="${h.kind}"] input`);
+  if(inp) setTimeout(()=>inp.focus({preventScroll:true}), 260);
+});
+cv.addEventListener("mousemove", e=>{
+  cv.style.cursor = hitAt(toCanvas(e)) ? "pointer" : "default";
+});
+
+/* ============================================================
+   YouTube サムネプレビュー（canvas を複製描画するので file:// でも動く）
+   ============================================================ */
+const ytModal=document.getElementById("ytModal");
+function paintThumb(canvas, W, H){
+  canvas.width=W; canvas.height=H;
+  const c=canvas.getContext("2d");
+  c.fillStyle="#000"; c.fillRect(0,0,W,H);
+  const s=Math.min(W/cv.width, H/cv.height);
+  const dw=cv.width*s, dh=cv.height*s;
+  c.drawImage(cv, (W-dw)/2, (H-dh)/2, dw, dh);
+}
+function openPreview(){
+  const title=S.title || "原神 螺旋 編成紹介";
+  // 検索結果ページでの見え方（サムネ 360px 相当）
+  const sc=document.getElementById("ytSearch"); sc.innerHTML="";
+  const srows=[
+    {m:"2万 回視聴 ・ 5 日前",   d:"今回の編成とビルドを解説しています。チャンネル登録もよろしくお願いします。"},
+    {m:"8,432 回視聴 ・ 2 日前", d:"装備・凸数・聖遺物の構成をまとめました。参考になれば嬉しいです。"}
+  ];
+  srows.forEach(r=>{
+    const row=document.createElement("div"); row.className="yt-srow";
+    row.innerHTML=`<div class="yt-sthumb"><canvas></canvas><span class="yt-dur">6:24</span></div>`+
+      `<div class="yt-stx"><div class="yt-stitle">${title}</div>`+
+      `<div class="yt-smeta">${r.m}</div>`+
+      `<div class="yt-sch"><span class="yt-sav"></span>あなたのチャンネル</div>`+
+      `<div class="yt-sdesc">${r.d}</div></div>`;
+    sc.appendChild(row);
+    paintThumb(row.querySelector("canvas"), 720, 405);
+  });
+
+  const list=document.getElementById("ytList"); list.innerHTML="";
+  const rows=[
+    {t:title, m:"あなたのチャンネル ・ 8,432 回視聴 ・ 2 日前"},
+    {t:(title.length>10?title.slice(0,10)+"…":title)+" 解説", m:"あなたのチャンネル ・ 1.5万 回視聴 ・ 1 週間前"}
+  ];
+  rows.forEach(r=>{
+    const row=document.createElement("div"); row.className="yt-row";
+    row.innerHTML=`<div class="yt-rowthumb"><canvas></canvas></div>`+
+                  `<div class="yt-rowtx"><div class="yt-rowtitle">${r.t}</div><div class="yt-rowmeta">${r.m}</div></div>`;
+    list.appendChild(row);
+    paintThumb(row.querySelector("canvas"), 336, 189);
+  });
+  ytModal.hidden=false;
+}
+function closePreview(){ ytModal.hidden=true; }
+document.getElementById("previewBtn").onclick=openPreview;
+document.getElementById("ytClose").onclick=closePreview;
+document.getElementById("ytBg").onclick=closePreview;
+window.addEventListener("keydown", e=>{ if(e.key==="Escape") closePreview(); });
+
+/* ============================================================
+   書き出し
+   ============================================================ */
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("on");
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),2000);
+}
+document.getElementById("saveBtn").onclick=()=>{
+  try{
+    const a=document.createElement("a");
+    a.download=(S.title||"build-card").replace(/[\\/:*?"<>|]/g,"_")+".png";
+    a.href=cv.toDataURL("image/png"); a.click();
+    toast("PNG を保存しました");
+  }catch{ toast("ファイルを直接開くと保存できません。start.command でサーバー起動 か 公開ページから保存してください"); }
+};
+document.getElementById("copyBtn").onclick=async()=>{
+  try{
+    const blob=await new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(),"image/png"));
+    await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
+    toast("画像をコピーしました");
+  }catch{ toast("ファイルを直接開くとコピーできません。start.command でサーバー起動 か 公開ページを使ってください"); }
+};
+
+buildSlots();
+buildEnemyPick();
+draw();
+// フォント読み込み後に再描画（初回はフォールバックで描かれるため）
+if(document.fonts && document.fonts.load){
+  document.fonts.load('64px "CardFont"').then(()=>draw()).catch(()=>{});
+}
+</script>
+</body>
+</html>

@@ -103,6 +103,21 @@ def p_text(page, name):
     return "".join(x.get("plain_text", "") for x in arr).strip()
 
 
+def kana_reading(name):
+    """カタカナだけの名前をひらがなに変換する。
+
+    ビルドカードメーカーの検索でひらがな入力を拾うために使う。
+    漢字を含む名前（胡桃・申鶴など）は自動変換できないので、
+    Notion の Reading 列に手で入れてもらう。
+    """
+    if not name:
+        return ""
+    if not all(("\u30a1" <= ch <= "\u30f6") or ch in "\u30fb\u30fc" for ch in name):
+        return ""
+    return "".join(chr(ord(ch) - 0x60) if "\u30a1" <= ch <= "\u30f6" else ch
+                   for ch in name)
+
+
 def p_select(page, name):
     sel = page["properties"].get(name, {}).get("select")
     return sel.get("name") if sel else ""
@@ -158,6 +173,7 @@ def build_characters(pages):
             continue  # 未入力の行はスキップ
         image = p_text(pg, "Image")
         pneuma = p_multi(pg, "PneumaOusia")
+        reading = p_text(pg, "Reading") or kana_reading(name)
         entry = {
             "id": cid,
             "name": name,
@@ -165,6 +181,8 @@ def build_characters(pages):
             "level": int(p_number(pg, "Level", 90) or 90),
             "image": (CHARACTER_IMAGE_DIR + image) if image else "",
         }
+        if reading:
+            entry["reading"] = reading
         if p_check(pg, "IsTraveler"):
             entry["isTraveler"] = True
             entry["exclusiveGroup"] = "traveler"
@@ -486,6 +504,7 @@ def _fake_pages_from_master(path):
         char_pages.append({"id": pid, "properties": {
             "Name": {"title": [{"plain_text": c["name"]}]},
             "ID": rt(c["id"]),
+            "Reading": rt(c.get("reading", "")),
             "Element": {"select": {"name": c["element"]}},
             "Level": {"number": c.get("level", 90)},
             "Rarity": {"select": ({"name": str(c["rarity"])} if c.get("rarity") else None)},
