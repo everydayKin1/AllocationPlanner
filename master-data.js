@@ -569,6 +569,37 @@ window.GENGEKI_MASTER_DATA = {
         { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "", icon: "", note: "" } },
         { id: "act-10", name: "第10幕", reward: 0, final: true, enemy: { name: "", icon: "", note: "" } }
       ]
+    },
+    {
+      id: "2026-12",
+      label: "2026年12月",
+      elements: ["炎", "水", "岩"],
+      openingCast: ["arlecchino", "bennett", "furina", "xingqiu", "navia", "illuga"],
+      specialCast: ["chasca", "varesa", "kinich", "iansan"],
+      buffs: [
+        { id: "buffA", name: "蒸発" },
+        { id: "buffB", name: "炎結晶" },
+        { id: "buffC", name: "水結晶" }
+      ],
+      icons: [
+        { label: "炎", icon: "炎" },
+        { label: "水", icon: "水" },
+        { label: "岩", icon: "岩" }
+      ],
+      stages: [
+        { id: "act-1", name: "第1幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-2", name: "第2幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-3", name: "第3幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-4", name: "第4幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-5", name: "第5幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-6", name: "第6幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-7", name: "第7幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-8", name: "第8幕", reward: 125, enemy: { name: "", icon: "", note: "" } },
+        { id: "act-9", name: "第9幕", reward: 90, enemy: { name: "", icon: "", note: "" } },
+        { id: "arcana-1", name: "アルカナ挑戦1", reward: 90, special: true, allowedFromAfter: "第3幕", enemy: { name: "", icon: "", note: "" } },
+        { id: "arcana-2", name: "アルカナ挑戦2", reward: 90, special: true, allowedFromAfter: "第6幕", enemy: { name: "", icon: "", note: "" } },
+        { id: "act-10", name: "第10幕", reward: 0, final: true, enemy: { name: "", icon: "", note: "" } }
+      ]
     }
   ],
   characters: [
@@ -696,6 +727,8 @@ window.GENGEKI_MASTER_DATA = {
     { id: "kirara", name: "綺良々", element: "草", level: 90, image: "./images/character/Kirara_icon.webp", rarity: 4, releaseOrder: 69, tags: { positions: ["オフフィールド"], roles: ["ライフキーパー", "シールダー"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false, starBlessing: false, starReaction: false, gather: false } },
     { id: "odette", name: "オデット", element: "氷", level: 90, image: "./images/character/Odette_icon.webp", reading: "おでっと", rarity: 5, releaseOrder: 123, tags: { positions: ["オフフィールド"], roles: ["アタッカー", "サポーター"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false, starBlessing: true, starReaction: true, gather: false } },
     { id: "alyosha", name: "アリョーシャ", element: "雷", level: 90, image: "./images/character/Alyosha_icon.webp", reading: "ありょーしゃ", rarity: 4, releaseOrder: 122, tags: { positions: ["オフフィールド"], roles: ["サポーター", "ライフキーパー", "ヒーラー"], weapon: "長柄武器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false, starBlessing: false, starReaction: true, gather: false } },
+    { id: "Valeriy", name: "バレリー", element: "雷", level: 90, image: "./images/character/Valeriy_icon.webp", reading: "ばれりー", rarity: 4, releaseOrder: 127, tags: { positions: ["オフフィールド"], roles: ["ライフキーパー", "シールダー", "サポーター"], weapon: "片手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false, starBlessing: false, starReaction: true, gather: false } },
+    { id: "Mitya", name: "ミティヤ", element: "雷", level: 90, image: "./images/character/Mitya_icon.webp", reading: "みてぃや", rarity: 5, releaseOrder: 126, tags: { positions: ["オンフィールド", "オフフィールド"], roles: ["アタッカー", "サポーター"], weapon: "法器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false, starBlessing: true, starReaction: true, gather: false } },
     { id: "kaveh", name: "カーヴェ", element: "草", level: 90, image: "./images/character/Kaveh_icon.webp", reading: "かーゔぇ", rarity: 4, releaseOrder: 67, tags: { positions: ["オンフィールド"], roles: ["アタッカー"], weapon: "両手剣", nightsoul: false, pneumaOusia: "", lunar: false, magic: false, starBlessing: false, starReaction: false, gather: false } },
     { id: "yaoyao", name: "ヨォーヨ", element: "草", level: 90, image: "./images/character/Yaoyao_icon.webp", reading: "よぉーよ", rarity: 4, releaseOrder: 63, tags: { positions: ["オフフィールド"], roles: ["ライフキーパー", "ヒーラー"], weapon: "長柄武器", nightsoul: false, pneumaOusia: "", lunar: false, magic: false, starBlessing: false, starReaction: false, gather: false } },
     { id: "collei", name: "コレイ", element: "草", level: 90, image: "./images/character/Collei_icon.webp", reading: "これい", rarity: 4, releaseOrder: 53, tags: { positions: ["オフフィールド"], roles: ["アタッカー"], weapon: "弓", nightsoul: false, pneumaOusia: "", lunar: false, magic: false, starBlessing: false, starReaction: false, gather: false } }
