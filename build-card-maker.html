@@ -240,6 +240,10 @@
         <input type="text" id="title" value="現在の編成" placeholder="空欄でもOK">
       </div>
       <div class="field">
+        <label for="titleIcon">見出しアイコン</label>
+        <select id="titleIcon"></select>
+      </div>
+      <div class="field">
         <label for="size">書き出しサイズ</label>
         <select id="size">
           <option value="1920x1080">1920 × 1080（YouTube サムネ）</option>
@@ -323,6 +327,7 @@ const CARD = window.CARD_DATA || {};           // card-data.js（聖遺物・敵
 const WEAPONS = DATA.weapons || [];          // Notion「武器一覧」から同期
 const ENEMIES = CARD.enemies || [];
 const ARTIFACTS = CARD.artifacts || [];
+const TITLE_ICONS = CARD.titleIcons || [];   // 見出しの先頭に付けるアイコン
 const READINGS = CARD.readings || {};
 // 読みがなは master-data.js（Notion の Reading 列）を優先し、無ければ card-data.js で補う
 const charReading = c => c.reading || READINGS[c.id] || "";
@@ -360,6 +365,7 @@ const S = {
   title:"現在の編成", w:1920, h:1080, bg:"night", hideZero:true,
   enemy:null, enemyImg:null, showEnemy:false, showArtifact:false,
   enemyZ:1, enemyOX:0, enemyOY:0,   // 敵画像の拡大率と位置（枠サイズ比）
+  titleIcon:null, titleIconImg:null,
   slots:[newSlot(),newSlot(),newSlot(),newSlot()], count:4
 };
 
@@ -651,6 +657,18 @@ function slotUI(i){
 
 // 全体設定
 document.getElementById("title").oninput  = e=>{ S.title=e.target.value; draw(); };
+(function buildTitleIconSelect(){
+  const sel=document.getElementById("titleIcon");
+  const none=document.createElement("option"); none.value=""; none.textContent="なし";
+  sel.appendChild(none);
+  TITLE_ICONS.forEach(t=>{ const o=document.createElement("option"); o.value=t.id; o.textContent=t.name; sel.appendChild(o); });
+  sel.onchange=()=>{
+    const t=TITLE_ICONS.find(x=>x.id===sel.value) || null;
+    S.titleIcon=t; S.titleIconImg=null;
+    if(t) loadImg(t.image, img=>{ S.titleIconImg=img; draw(); });
+    draw();
+  };
+})();
 document.getElementById("bg").onchange    = e=>{ S.bg=e.target.value; draw(); };
 document.getElementById("hideZero").onchange = e=>{ S.hideZero=e.target.checked; draw(); };
 document.getElementById("showEnemy").onchange = e=>{
@@ -757,6 +775,24 @@ function centerText(text,cx,y,maxW,startPx,weight,color){
   ctx.fillStyle=color;
   drawTextCentered(text,cx,y);
 }
+// 見出し。アイコンがあれば「アイコン＋テキスト」をひとまとまりで中央に置く。
+function drawTitle(text, cx, cy, maxW, px, color){
+  const icon = S.titleIconImg;
+  if(!text && !icon) return;
+  const ih = px*1.12;                                  // アイコンの高さは文字に合わせる
+  const iw = icon ? ih*(icon.width/icon.height) : 0;
+  const gap = (icon && text) ? px*0.28 : 0;
+  const size = text ? fitText(text, Math.max(10, maxW-iw-gap), px, "700") : px;
+  ctx.font = `700 ${size}px ${F}`;
+  const tw = text ? ctx.measureText(text).width : 0;
+  const left = cx - (iw+gap+tw)/2;
+  if(icon) ctx.drawImage(icon, left, cy-ih/2, iw, ih);
+  if(text){
+    ctx.fillStyle = color;
+    drawTextCentered(text, left+iw+gap+tw/2, cy);
+  }
+}
+
 function fillRarity(x,y,w,h,rarity){
   const g=ctx.createLinearGradient(x,y,x,y+h);
   if(rarity>=5){ g.addColorStop(0,"#8A6733"); g.addColorStop(.55,"#BC934C"); g.addColorStop(1,"#E9C577"); }
@@ -843,9 +879,9 @@ function draw(){
 
   const n=S.count, cols=n;
   const pad=S.w*0.04;
-  const headH= S.title ? S.h*0.14 : S.h*0.04;
+  const headH= (S.title || S.titleIcon) ? S.h*0.14 : S.h*0.04;
 
-  if(S.title) centerText(S.title, S.w/2, headH*0.5, S.w-pad*2, Math.round(S.h*0.098), "700", t.ink);
+  drawTitle(S.title, S.w/2, headH*0.5, S.w-pad*2, Math.round(S.h*0.098), t.ink);
 
   const areaY=headH, areaH=S.h-headH-S.h*0.04;
   const gapX=S.w*0.016, gapY=S.h*0.024;

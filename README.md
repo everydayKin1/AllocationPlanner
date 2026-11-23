@@ -119,9 +119,13 @@ python3 tools/bump_version.py
 | 武器 | `images/weapon/` | `<武器名>.webp` |
 | 聖遺物 | `images/artifact/` | `<セット名>.webp` |
 | 敵 | `images/enemy/` | `card-data.js` の `enemies` と同じ名前 |
+| 見出しアイコン | `images/icon/` | `Icon_<名前>.webp`（見出しの先頭に付けられます） |
 
 武器の画像を足したら、Notion の「武器一覧」に行を追加して `Image` にファイル名を入れてください。
-聖遺物・敵は `card-data.js` の一覧に名前を追加します。
+聖遺物・敵・見出しアイコンは `card-data.js` の一覧に名前を追加します。
+見出しアイコンは「エクストラ」「マスター」などの難易度バッジを想定していて、
+`images/icon/Icon_エクストラ.webp` のように置き、`titleIcons` に1行足すと
+左パネルの「見出しアイコン」から選べるようになります。
 
 ### 武器を追加するとき
 

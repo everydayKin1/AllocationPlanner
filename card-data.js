@@ -3,6 +3,13 @@
 // master-data.js は Notion から自動生成されるため、こちらは手動管理のファイルです。
 // 画像の置き場所: 聖遺物=images/artifact/<セット名>.webp
 window.CARD_DATA = {
+  // 見出しの先頭に付けられるアイコン（images/icon/Icon_<名前>.webp を置いて追加）
+  titleIcons: [
+    { id: "ti-1", name: "アルティメット", image: "./images/icon/Icon_アルティメット.webp" },
+    { id: "ti-2", name: "アルティメット180秒以内", image: "./images/icon/Icon_アルティメット180秒以内.webp" },
+    { id: "ti-3", name: "エクストラ", image: "./images/icon/Icon_エクストラ.webp" },
+    { id: "ti-4", name: "マスター", image: "./images/icon/Icon_マスター.webp" }
+  ],
   artifacts: [
     { id: "af-kyuukizoku", name: "旧貴族4セット", image: "./images/artifact/旧貴族4セット.webp" },
     { id: "af-senngan", name: "千岩4セット", image: "./images/artifact/千岩4セット.webp" },
