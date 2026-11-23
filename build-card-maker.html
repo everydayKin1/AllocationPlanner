@@ -137,6 +137,9 @@
   .mini-seg button{font-size:11px;padding:5px 2px}
   .lb input[type=text]{padding:6px 8px;text-align:center}
 
+  .zoomrow{display:flex;align-items:center;gap:8px}
+  .zoomrow input[type=range]{flex:1;min-width:0;accent-color:var(--glow)}
+  .zoomval{font-size:11px;color:var(--muted);min-width:38px;text-align:right;font-variant-numeric:tabular-nums}
   .manual{margin-top:10px}
   .manual > summary{font-size:11px;color:var(--muted);cursor:pointer;list-style:none}
   .manual > summary::-webkit-details-marker{display:none}
@@ -356,6 +359,7 @@ function newSlot(){
 const S = {
   title:"現在の編成", w:1920, h:1080, bg:"night", hideZero:true,
   enemy:null, enemyImg:null, showEnemy:false, showArtifact:false,
+  enemyZ:1, enemyOX:0, enemyOY:0,   // 敵画像の拡大率と位置（枠サイズ比）
   slots:[newSlot(),newSlot(),newSlot(),newSlot()], count:4
 };
 
@@ -417,9 +421,12 @@ function selectChar(i, c){
 }
 function selectEnemy(e){
   S.enemy=e; S.enemyImg=null;
+  resetEnemyView();
   if(e) loadImg(e.image, img=>{ S.enemyImg=img; draw(); });
   buildSlots(); draw();
 }
+function resetEnemyView(){ S.enemyZ=1; S.enemyOX=0; S.enemyOY=0; }
+
 function selectArtifact(i, a){
   const s=S.slots[i];
   s.artifact=a; s.afImg=null;
@@ -556,7 +563,7 @@ function enemyManualUpload(){
   const f=document.createElement("label"); f.className="mfile";
   const sp=document.createElement("span"); sp.textContent="敵画像"; f.appendChild(sp);
   const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
-  inp.onchange=()=>{ const file=inp.files[0]; if(!file) return; readImage(file,img=>{ S.enemyImg=img; draw(); }); };
+  inp.onchange=()=>{ const file=inp.files[0]; if(!file) return; readImage(file,img=>{ S.enemyImg=img; resetEnemyView(); buildEnemyPick(); draw(); }); };
   f.appendChild(inp); d.appendChild(f);
   return d;
 }
@@ -670,7 +677,36 @@ function buildEnemyPick(){
     });
     se.dataset.kind="enemy"; host.appendChild(se);
   }
+  if(S.enemy || S.enemyImg) host.appendChild(enemyViewControls());
   host.appendChild(enemyManualUpload());
+}
+
+// 敵画像の「大きさ」調整とリセット（ドラッグでも動かせる）
+function enemyViewControls(){
+  const wrap=document.createElement("div"); wrap.className="lb";
+  const lab=document.createElement("label");
+  lab.textContent="大きさ（枠の中でドラッグすると位置を動かせます）";
+  const row=document.createElement("div"); row.className="zoomrow";
+  const sl=document.createElement("input");
+  sl.type="range"; sl.min="30"; sl.max="500"; sl.step="1";
+  sl.value=String(Math.round(S.enemyZ*100));
+  sl.oninput=()=>{ S.enemyZ=+sl.value/100; val.textContent=sl.value+"%"; draw(); };
+  const val=document.createElement("span"); val.className="zoomval";
+  val.textContent=Math.round(S.enemyZ*100)+"%";
+  const rs=document.createElement("button"); rs.className="mini"; rs.textContent="リセット";
+  rs.onclick=()=>{ resetEnemyView(); syncEnemyControls(); draw(); };
+  row.append(sl,val,rs);
+  wrap.append(lab,row);
+  wrap.dataset.role="enemyview";
+  return wrap;
+}
+
+// ドラッグやホイールで変えた値をスライダー表示に反映する
+function syncEnemyControls(){
+  const w=document.querySelector('[data-role="enemyview"]'); if(!w) return;
+  const sl=w.querySelector("input[type=range]"), val=w.querySelector(".zoomval");
+  if(sl)  sl.value=String(Math.round(S.enemyZ*100));
+  if(val) val.textContent=Math.round(S.enemyZ*100)+"%";
 }
 document.getElementById("size").onchange  = e=>{
   const [w,h]=e.target.value.split("x").map(Number);
@@ -856,7 +892,7 @@ function drawEnemyCard(x, y, w, h){
   const g=ctx.createLinearGradient(x,y,x,y+h);
   g.addColorStop(0,"#3A2036"); g.addColorStop(1,"#1C1430");
   ctx.fillStyle=g; ctx.fillRect(x,y,w,h);
-  if(S.enemyImg) coverInto(S.enemyImg, x,y,w,h, 1, 0, 0);
+  if(S.enemyImg) coverInto(S.enemyImg, x,y,w,h, S.enemyZ, S.enemyOX, S.enemyOY);
   ctx.restore();
   if(!S.enemyImg) centerText(S.enemy?"画像なし":"敵を選択", x+w/2, y+h*0.5, w*0.82, Math.round(w*0.09), "600", "rgba(255,255,255,.85)");
   ctx.strokeStyle="rgba(0,0,0,.30)"; ctx.lineWidth=Math.max(2,w*0.007); rrc(x,y,w,h,[r,r,r,r]); ctx.stroke();
@@ -959,6 +995,7 @@ function scrollSlotIntoView(el){
   }, 250);
 }
 cv.addEventListener("click", e=>{
+  if(enemyDrag && enemyDrag.moved) return;   // 敵画像を動かした直後はスクロールしない
   const h=hitAt(toCanvas(e)); if(!h) return;
   if(h.slot===-1){                       // 敵カード
     const ep=document.getElementById("enemyPick");
@@ -978,8 +1015,45 @@ cv.addEventListener("click", e=>{
   const inp=el.querySelector(`.search[data-kind="${h.kind}"] input`);
   if(inp) setTimeout(()=>inp.focus({preventScroll:true}), 260);
 });
+/* ---- 敵画像を枠内でドラッグ移動 / ホイールで拡大縮小 ---- */
+let enemyDrag=null;
+
+cv.addEventListener("mousedown", e=>{
+  if(!S.enemyImg) return;
+  const p=toCanvas(e), h=hitAt(p);
+  if(!h || h.kind!=="enemy") return;
+  enemyDrag={ sx:p.x, sy:p.y, ox:S.enemyOX, oy:S.enemyOY, w:h.w, h:h.h, moved:false };
+  e.preventDefault();
+});
+window.addEventListener("mousemove", e=>{
+  if(!enemyDrag) return;
+  const p=toCanvas(e);
+  const dx=(p.x-enemyDrag.sx)/enemyDrag.w, dy=(p.y-enemyDrag.sy)/enemyDrag.h;
+  if(Math.abs(p.x-enemyDrag.sx)>3 || Math.abs(p.y-enemyDrag.sy)>3) enemyDrag.moved=true;
+  S.enemyOX=enemyDrag.ox+dx; S.enemyOY=enemyDrag.oy+dy;
+  draw();
+});
+window.addEventListener("mouseup", ()=>{
+  if(!enemyDrag) return;
+  const moved=enemyDrag.moved;
+  // click イベントの後に解除する（動かしたときだけスクロールを抑える）
+  setTimeout(()=>{ enemyDrag=null; }, 0);
+  if(moved) syncEnemyControls();
+});
+cv.addEventListener("wheel", e=>{
+  if(!S.enemyImg) return;
+  const h=hitAt(toCanvas(e));
+  if(!h || h.kind!=="enemy") return;
+  e.preventDefault();
+  const k = e.deltaY<0 ? 1.08 : 1/1.08;
+  S.enemyZ = Math.max(0.3, Math.min(5, S.enemyZ*k));
+  syncEnemyControls(); draw();
+}, {passive:false});
+
 cv.addEventListener("mousemove", e=>{
-  cv.style.cursor = hitAt(toCanvas(e)) ? "pointer" : "default";
+  if(enemyDrag){ cv.style.cursor="grabbing"; return; }
+  const h=hitAt(toCanvas(e));
+  cv.style.cursor = h ? (h.kind==="enemy" && S.enemyImg ? "grab" : "pointer") : "default";
 });
 
 /* ============================================================
