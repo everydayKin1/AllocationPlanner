@@ -137,6 +137,8 @@
   .mini-seg button{font-size:11px;padding:5px 2px}
   .lb input[type=text]{padding:6px 8px;text-align:center}
 
+  .iconseg button{display:flex;align-items:center;justify-content:center;padding:5px 2px;min-height:32px}
+  .iconseg img{width:22px;height:22px;display:block;object-fit:contain}
   .zoomrow{display:flex;align-items:center;gap:8px}
   .zoomrow input[type=range]{flex:1;min-width:0;accent-color:var(--glow)}
   .zoomval{font-size:11px;color:var(--muted);min-width:38px;text-align:right;font-variant-numeric:tabular-nums}
@@ -240,8 +242,8 @@
         <input type="text" id="title" value="現在の編成" placeholder="空欄でもOK">
       </div>
       <div class="field">
-        <label for="titleIcon">見出しアイコン</label>
-        <select id="titleIcon"></select>
+        <label>見出しアイコン</label>
+        <div class="seg iconseg" id="titleIcon"></div>
       </div>
       <div class="field">
         <label for="size">書き出しサイズ</label>
@@ -657,17 +659,29 @@ function slotUI(i){
 
 // 全体設定
 document.getElementById("title").oninput  = e=>{ S.title=e.target.value; draw(); };
-(function buildTitleIconSelect(){
-  const sel=document.getElementById("titleIcon");
-  const none=document.createElement("option"); none.value=""; none.textContent="なし";
-  sel.appendChild(none);
-  TITLE_ICONS.forEach(t=>{ const o=document.createElement("option"); o.value=t.id; o.textContent=t.name; sel.appendChild(o); });
-  sel.onchange=()=>{
-    const t=TITLE_ICONS.find(x=>x.id===sel.value) || null;
-    S.titleIcon=t; S.titleIconImg=null;
-    if(t) loadImg(t.image, img=>{ S.titleIconImg=img; draw(); });
-    draw();
+(function buildTitleIconButtons(){
+  const host=document.getElementById("titleIcon");
+  const mk=t=>{
+    const b=document.createElement("button");
+    b.type="button";
+    b.title = t ? t.name : "アイコンなし";     // 画像だけなので名前はツールチップで出す
+    if(t){
+      const im=document.createElement("img");
+      im.src=t.image; im.alt=t.name; b.appendChild(im);
+    } else {
+      b.textContent="なし";
+    }
+    b.setAttribute("aria-pressed", t ? (S.titleIcon && S.titleIcon.id===t.id) : !S.titleIcon);
+    b.onclick=()=>{
+      [...host.children].forEach(c=>c.setAttribute("aria-pressed", c===b));
+      S.titleIcon=t; S.titleIconImg=null;
+      if(t) loadImg(t.image, img=>{ S.titleIconImg=img; draw(); });
+      draw();
+    };
+    return b;
   };
+  host.appendChild(mk(null));
+  TITLE_ICONS.forEach(t=>host.appendChild(mk(t)));
 })();
 document.getElementById("bg").onchange    = e=>{ S.bg=e.target.value; draw(); };
 document.getElementById("hideZero").onchange = e=>{ S.hideZero=e.target.checked; draw(); };
@@ -706,7 +720,7 @@ function enemyViewControls(){
   lab.textContent="大きさ（枠の中でドラッグすると位置を動かせます）";
   const row=document.createElement("div"); row.className="zoomrow";
   const sl=document.createElement("input");
-  sl.type="range"; sl.min="30"; sl.max="500"; sl.step="1";
+  sl.type="range"; sl.min="30"; sl.max="300"; sl.step="1";
   sl.value=String(Math.round(S.enemyZ*100));
   sl.oninput=()=>{ S.enemyZ=+sl.value/100; val.textContent=sl.value+"%"; draw(); };
   const val=document.createElement("span"); val.className="zoomval";
@@ -1082,7 +1096,7 @@ cv.addEventListener("wheel", e=>{
   if(!h || h.kind!=="enemy") return;
   e.preventDefault();
   const k = e.deltaY<0 ? 1.08 : 1/1.08;
-  S.enemyZ = Math.max(0.3, Math.min(5, S.enemyZ*k));
+  S.enemyZ = Math.max(0.3, Math.min(3, S.enemyZ*k));
   syncEnemyControls(); draw();
 }, {passive:false});
 
